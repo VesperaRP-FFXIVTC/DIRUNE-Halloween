@@ -363,7 +363,7 @@ document.addEventListener("DOMContentLoaded", () => {
 //    rabbit: true = 兔子彩蛋（剪影會冒出長耳朵）
 // 剪影會自動使用 stamps.js 裡設定的紋章圖片；找不到圖片時顯示預設的貓咪剪影
 const BOUNTIES = [
-    { no: 17, boss: true, name: '紅貓魔王', danger: 5, gil: '1,000,000',
+    { no: 17, boss: true, name: '紅貓魔王', danger: 5, gil: '？？？',
       crime: '包括：<br>1. 經常對著其他惡魔講幹話。<br>2. 喜歡唱各種奇怪的歌洗腦平民，例如 DJ版雨愛，森林裡的小餐館（奇諾比奧ver.）<br>3. 咏唱很長但毫無意義的咒文，需時約41秒。<br>4. 胡亂使用魔法導致一座城鎮被大火吞噬。<br>...還有約4872條，未能盡錄。' },
     { no: 1,  name: '長耳貓', danger: 1, gil: '5,000',
       crime: '偽裝成貓咪至今無人發現。' },
@@ -375,7 +375,7 @@ const BOUNTIES = [
       crime: '城鎮裡面每次有修路的地方，他都喜歡趁著水泥還沒乾的時候，偷偷地在上面留下自己的腳印。' },
     { no: 5,  name: '柔軟奶油貓', danger: 2, gil: '10,000',
       crime: '有貓洗澡的地方就會有他，不止偷看還會闖進去上手。' },
-    { no: 6,  name: '赤羽', danger: 2, gil: '10,000',
+    { no: 6,  name: '收割師', danger: 2, gil: '10,000',
       crime: '用無辜的眼神騙走路人手上的點心。' },
     { no: 7,  name: '鎖鏈的白魔', danger: 2, gil: '10,000',
       crime: '把待在黑魔紋裡詠唱的人用營救拉出來。' },
