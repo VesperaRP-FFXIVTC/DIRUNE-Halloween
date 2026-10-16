@@ -11,20 +11,27 @@
         .admin-panel { background: rgba(0,0,0,0.5); border: 2px solid #ff7300; padding: 26px 20px; border-radius: 15px; text-align: center; width: 100%; max-width: 520px; box-shadow: 0 0 20px rgba(255,115,0,0.2); }
         h1, h2 { color: #ff7300; margin: 0 0 20px; }
         h2 { font-size: 1.4rem; color: #a855f7; border-top: 1px dashed #6b21a8; padding-top: 22px; margin-top: 30px; }
+        .hidden { display: none !important; }
         .form-group { margin-bottom: 18px; text-align: left; }
         label { display: block; margin-bottom: 10px; font-weight: bold; color: #a855f7; }
         input { width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #a855f7; background: #0b0510; color: #fff; font-size: 1.1rem; text-transform: uppercase; }
+        input[type="password"] { text-transform: none; }
         input:focus { outline: none; border-color: #ff7300; box-shadow: 0 0 10px rgba(255,115,0,0.4); }
         button { background: #ff7300; color: #fff; border: none; padding: 15px; width: 100%; border-radius: 8px; font-size: 1.2rem; font-weight: bold; cursor: pointer; transition: 0.3s; margin-bottom: 10px; }
         button:hover:not(:disabled) { background: #cc5c00; box-shadow: 0 0 15px #ff7300; }
         button:disabled { opacity: 0.5; cursor: wait; }
         .btn-check { background: #6b21a8; }
         .btn-check:hover:not(:disabled) { background: #4c1d95; box-shadow: 0 0 15px #6b21a8; }
-        .status { margin-top: 6px; font-weight: bold; min-height: 1.4em; }
+        .btn-ghost { background: transparent; border: 1px solid #6b21a8; color: #c4b5fd; font-size: 0.9rem; padding: 8px 12px; width: auto; margin: 0; }
+        .btn-ghost:hover:not(:disabled) { background: #1c1030; box-shadow: none; }
+        .status { margin-top: 6px; font-weight: bold; min-height: 1.4em; white-space: pre-line; }
 
-        /* 紋章選擇：圖片按鈕 */
+        /* 紋章選擇：圖片按鈕（可多選） */
+        .picker-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+        .picker-head label { margin: 0; }
         .stamp-picker { display: grid; grid-template-columns: repeat(auto-fill, minmax(84px, 1fr)); gap: 8px; }
         .stamp-opt {
+            position: relative;
             background: #0b0510;
             border: 2px solid #3b1d5e;
             border-radius: 10px;
@@ -41,8 +48,12 @@
         }
         .stamp-opt:hover:not(:disabled) { background: #1c1030; border-color: #a855f7; box-shadow: none; }
         .stamp-opt.selected { border-color: #ff7300; background: rgba(255,115,0,0.15); box-shadow: 0 0 10px rgba(255,115,0,0.5); }
+        .stamp-opt.selected::after {
+            content: '✓'; position: absolute; top: 3px; right: 5px;
+            background: #ff7300; color: #fff; width: 18px; height: 18px; border-radius: 50%;
+            font-size: 0.75rem; line-height: 18px;
+        }
         .stamp-opt img { width: 56px; height: 56px; object-fit: contain; }
-        .stamp-opt .no { font-size: 0.7rem; color: #8b7aa3; font-weight: normal; }
         .stamp-opt .stage { font-size: 0.68rem; color: #a78bca; font-weight: normal; }
         .stamp-opt .ph { width: 56px; height: 56px; border-radius: 50%; border: 2px dashed #6b21a8; display: flex; align-items: center; justify-content: center; color: #a855f7; }
 
@@ -64,45 +75,118 @@
     <div class="admin-panel">
         <h1>🗡️ 紋章賦予系統</h1>
 
-        <div class="form-group">
-            <label for="playerId">玩家魔書編號 (4碼)</label>
-            <input type="text" id="playerId" placeholder="例如: A7K9" maxlength="4" autocomplete="off">
+        <!-- 第一步：關主密碼（和 issue.html 共用同一組，登入過一次就會記住） -->
+        <div id="keySection">
+            <div class="form-group">
+                <label for="adminKey">關主密碼</label>
+                <input type="password" id="adminKey" placeholder="輸入在 Apps Script 設定的 ADMIN_KEY" autocomplete="current-password">
+            </div>
+            <button id="loginBtn">進入後台</button>
+            <div class="status" id="keyStatus"></div>
         </div>
 
-        <div class="form-group">
-            <label>選擇給予的紋章</label>
-            <div class="stamp-picker" id="stampPicker"></div>
-        </div>
+        <!-- 第二步：賦予／查詢 -->
+        <div id="mainSection" class="hidden">
+            <div class="form-group">
+                <label for="playerId">玩家魔書編號 (4碼)</label>
+                <input type="text" id="playerId" placeholder="例如: A7K9" maxlength="4" autocomplete="off">
+            </div>
 
-        <div class="selected-bar" id="selectedBar"></div>
-        <button id="giveBtn" onclick="giveStamp()">賦予紋章</button>
-        <div class="status" id="statusText"></div>
+            <div class="form-group">
+                <div class="picker-head">
+                    <label>選擇給予的紋章（可多選）</label>
+                    <button type="button" class="btn-ghost" id="clearBtn">清除選擇</button>
+                </div>
+                <div class="stamp-picker" id="stampPicker"></div>
+            </div>
 
-        <h2>🔍 魔書狀態查詢 (兌換核對)</h2>
-        <div class="form-group">
-            <input type="text" id="checkId" placeholder="輸入玩家編號查詢進度" maxlength="4" autocomplete="off">
-        </div>
-        <button class="btn-check" id="checkBtn" onclick="checkPlayer()">查詢收集進度</button>
+            <div class="selected-bar" id="selectedBar"></div>
+            <button id="giveBtn" onclick="giveStamps()">賦予紋章</button>
+            <div class="status" id="statusText"></div>
 
-        <div class="result-box" id="resultBox">
-            <p><strong>玩家編號：</strong> <span id="resId" style="color:#ff7300;"></span></p>
-            <p><strong>收集進度：</strong> <span id="resCount" style="color:#4ade80;"></span> / 17</p>
-            <div class="owned" id="resList"></div>
-            <div class="legend" id="resNote"></div>
+            <h2>🔍 魔書狀態查詢 (兌換核對)</h2>
+            <div class="form-group">
+                <input type="text" id="checkId" placeholder="輸入玩家編號查詢進度" maxlength="4" autocomplete="off">
+            </div>
+            <button class="btn-check" id="checkBtn" onclick="checkPlayer()">查詢收集進度</button>
+
+            <div class="result-box" id="resultBox">
+                <p><strong>玩家編號：</strong> <span id="resId" style="color:#ff7300;"></span></p>
+                <p><strong>收集進度：</strong> <span id="resCount" style="color:#4ade80;"></span> / 17</p>
+                <div class="owned" id="resList"></div>
+                <div class="legend" id="resNote"></div>
+            </div>
+
+            <div style="text-align:center; margin-top:24px;">
+                <button class="btn-ghost" id="logoutBtn">登出此裝置</button>
+            </div>
         </div>
     </div>
 
     <script>
         const API_URL = "https://script.google.com/macros/s/AKfycbzhmLK2BTTQQ4hej4SHwhzOgYWhoI5u29c4d6iDeaWyFz97ydRNYbCC32hUnJ129_0Wdw/exec";
-        let selectedStamp = null;
+        const KEY_STORAGE = "sealhunter_admin_key";   // 和 issue.html 同一個，登入一次兩頁都通用
+        const $ = id => document.getElementById(id);
+
+        let adminKey = "";
+        const selected = new Set();
+
+        function setStatus(el, text, color) { el.style.color = color; el.textContent = text; }
+
+        // 所有寫入動作都會自動帶上關主密碼
+        function api(payload) {
+            return fetch(API_URL, {
+                method: "POST",
+                body: JSON.stringify({ ...payload, key: adminKey })
+            }).then(res => res.json());
+        }
+
+        // ===== 登入（用讀取派發紀錄來驗證密碼是否正確）=====
+        function login(key, silent) {
+            adminKey = key;
+            if (!silent) setStatus($('keyStatus'), "⏳ 驗證中…", "#fbbf24");
+            $('loginBtn').disabled = true;
+
+            api({ action: 'list_codes' }).then(res => {
+                if (res.status === "success") {
+                    try { localStorage.setItem(KEY_STORAGE, key); } catch (e) {}
+                    $('keySection').classList.add('hidden');
+                    $('mainSection').classList.remove('hidden');
+                    $('playerId').focus();
+                } else {
+                    try { localStorage.removeItem(KEY_STORAGE); } catch (e) {}
+                    setStatus($('keyStatus'), "❌ " + (res.message || "密碼錯誤"), "#ef4444");
+                }
+            }).catch(() => {
+                setStatus($('keyStatus'), "❌ 連線失敗，請檢查網路", "#ef4444");
+            }).finally(() => { $('loginBtn').disabled = false; });
+        }
+
+        $('loginBtn').addEventListener('click', () => {
+            const key = $('adminKey').value.trim();
+            if (!key) return setStatus($('keyStatus'), "❌ 請輸入關主密碼", "#ef4444");
+            login(key);
+        });
+        $('adminKey').addEventListener('keydown', e => { if (e.key === 'Enter') $('loginBtn').click(); });
+
+        $('logoutBtn').addEventListener('click', () => {
+            try { localStorage.removeItem(KEY_STORAGE); } catch (e) {}
+            location.reload();
+        });
+
+        // 這台裝置登入過的話，自動登入
+        try {
+            const saved = localStorage.getItem(KEY_STORAGE);
+            if (saved) { $('adminKey').value = saved; login(saved, true); }
+        } catch (e) {}
 
         // 圖片讀不到時，換成虛線圓圈＋編號
         function imgTag(n) {
             return `<img src="${stampImageUrl(n)}" alt="" onerror="this.outerHTML='<span class=&quot;ph&quot;>${n}</span>'">`;
         }
 
-        // ===== 產生紋章選擇按鈕 =====
-        const picker = document.getElementById('stampPicker');
+        // ===== 產生紋章選擇按鈕（點一下選取、再點一下取消）=====
+        const picker = $('stampPicker');
         for (let i = 1; i <= 17; i++) {
             const btn = document.createElement('button');
             btn.type = 'button';
@@ -110,59 +194,89 @@
             btn.dataset.id = i;
             btn.innerHTML = `${imgTag(i)}<span>${stampName(i)}</span><span class="stage">${stampStage(i)}</span>`;
             btn.addEventListener('click', () => {
-                document.querySelectorAll('.stamp-opt').forEach(b => b.classList.remove('selected'));
-                btn.classList.add('selected');
-                selectedStamp = i;
-                document.getElementById('selectedBar').textContent = `已選擇：${stampName(i)}（${stampStage(i)}）`;
+                if (selected.has(i)) { selected.delete(i); btn.classList.remove('selected'); }
+                else { selected.add(i); btn.classList.add('selected'); }
+                updateSelectedBar();
             });
             picker.appendChild(btn);
         }
 
-        function setStatus(text, color) {
-            const status = document.getElementById('statusText');
-            status.style.color = color;
-            status.textContent = text;
+        function sortedSelection() { return [...selected].sort((a, b) => a - b); }
+
+        function updateSelectedBar() {
+            const ids = sortedSelection();
+            $('selectedBar').textContent = ids.length
+                ? `已選擇 ${ids.length} 枚：${ids.map(stampName).join('、')}`
+                : '';
+            $('giveBtn').textContent = ids.length > 1 ? `賦予 ${ids.length} 枚紋章` : '賦予紋章';
         }
 
-        // ===== 賦予紋章 =====
-        function giveStamp() {
-            const playerId = document.getElementById('playerId').value.trim().toUpperCase();
-            if (playerId.length !== 4) return setStatus("❌ 請輸入 4 碼編號", "#ef4444");
-            if (!selectedStamp) return setStatus("❌ 請選擇紋章", "#ef4444");
+        function clearSelection() {
+            selected.clear();
+            document.querySelectorAll('.stamp-opt').forEach(b => b.classList.remove('selected'));
+            updateSelectedBar();
+        }
+        $('clearBtn').addEventListener('click', clearSelection);
 
-            const stampId = selectedStamp;
-            const btn = document.getElementById('giveBtn');
+        // ===== 賦予紋章（一次多枚，逐枚送出避免試算表同時寫入衝突）=====
+        async function giveStamps() {
+            const status = $('statusText');
+            const playerId = $('playerId').value.trim().toUpperCase();
+            if (playerId.length !== 4) return setStatus(status, "❌ 請輸入 4 碼編號", "#ef4444");
+            const ids = sortedSelection();
+            if (!ids.length) return setStatus(status, "❌ 請至少選擇一枚紋章", "#ef4444");
+
+            const btn = $('giveBtn');
             btn.disabled = true;
-            setStatus("⏳ 魔法傳輸中...", "#fbbf24");
 
-            fetch(API_URL, {
-                method: "POST",
-                body: JSON.stringify({ action: 'add_stamp', code: playerId, stampId: stampId })
-            }).then(res => res.json()).then(res => {
-                if (res.status === "success") {
-                    setStatus(`✅ 已賦予 ${playerId}「${stampName(stampId)}」紋章`, "#4ade80");
-                    document.querySelectorAll('.stamp-opt').forEach(b => b.classList.remove('selected'));
-                    selectedStamp = null;
-                    document.getElementById('selectedBar').textContent = '';
-                } else {
-                    setStatus("❌ " + res.message, "#ef4444");
+            const ok = [], failed = [];
+            for (let k = 0; k < ids.length; k++) {
+                const id = ids[k];
+                setStatus(status, `⏳ 魔法傳輸中…（${k + 1} / ${ids.length}）${stampName(id)}`, "#fbbf24");
+                try {
+                    const res = await api({ action: 'add_stamp', code: playerId, stampId: id });
+                    if (res.status === "success") ok.push(id);
+                    else {
+                        failed.push(`${stampName(id)}：${res.message || '失敗'}`);
+                        // 密碼失效或契約碼不存在時，後面也不會成功，直接停止
+                        if (/密碼|契約碼|查無/.test(res.message || '')) {
+                            ids.slice(k + 1).forEach(r => failed.push(`${stampName(r)}：未送出`));
+                            break;
+                        }
+                    }
+                } catch (e) {
+                    failed.push(`${stampName(id)}：連線失敗`);
                 }
-            }).catch(() => {
-                setStatus("❌ 連線失敗，請檢查網路", "#ef4444");
-            }).finally(() => { btn.disabled = false; });
+            }
+
+            btn.disabled = false;
+
+            // 成功的紋章取消選取，失敗的保留，方便直接重按一次
+            ok.forEach(id => {
+                selected.delete(id);
+                picker.querySelector(`[data-id="${id}"]`).classList.remove('selected');
+            });
+            updateSelectedBar();
+
+            let msg = ok.length ? `✅ 已賦予 ${playerId}：${ok.map(stampName).join('、')}` : '';
+            if (failed.length) msg += (msg ? '\n' : '') + `❌ 未成功：\n${failed.join('\n')}`;
+            setStatus(status, msg, failed.length ? (ok.length ? "#fbbf24" : "#ef4444") : "#4ade80");
+
+            if (failed.some(f => f.includes('密碼'))) {
+                try { localStorage.removeItem(KEY_STORAGE); } catch (e) {}
+            }
         }
 
         // ===== 查詢玩家進度 =====
         function checkPlayer() {
-            const checkId = document.getElementById('checkId').value.trim().toUpperCase();
+            const checkId = $('checkId').value.trim().toUpperCase();
             if (checkId.length !== 4) { alert("請輸入 4 碼玩家編號"); return; }
 
-            const resultBox = document.getElementById('resultBox');
-            const list = document.getElementById('resList');
-            const note = document.getElementById('resNote');
-            resultBox.style.display = 'block';
-            document.getElementById('resId').textContent = checkId;
-            document.getElementById('resCount').textContent = "-";
+            const list = $('resList');
+            const note = $('resNote');
+            $('resultBox').style.display = 'block';
+            $('resId').textContent = checkId;
+            $('resCount').textContent = "-";
             list.innerHTML = '';
             note.textContent = "讀取中...";
 
@@ -171,7 +285,7 @@
                 .then(data => {
                     if (data.status === "success") {
                         const owned = new Set(data.stamps.map(Number));
-                        document.getElementById('resCount').textContent = owned.size;
+                        $('resCount').textContent = owned.size;
                         let html = '';
                         for (let i = 1; i <= 17; i++) {
                             html += `<div class="owned-item${owned.has(i) ? ' got' : ''}">${imgTag(i)}${stampName(i)}</div>`;
@@ -186,8 +300,8 @@
                 });
         }
 
-        // 輸入框按 Enter
-        document.getElementById('checkId').addEventListener('keydown', e => { if (e.key === 'Enter') checkPlayer(); });
+        $('checkId').addEventListener('keydown', e => { if (e.key === 'Enter') checkPlayer(); });
+        $('playerId').addEventListener('keydown', e => { if (e.key === 'Enter') giveStamps(); });
     </script>
 </body>
 </html>
