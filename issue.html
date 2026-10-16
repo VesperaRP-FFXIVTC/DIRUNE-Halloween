@@ -100,7 +100,7 @@
                 <button class="btn-ghost" id="copyAllBtn">全部複製</button>
             </div>
             <div class="code-cards" id="codeCards"></div>
-            <button id="startNewBtn" style="margin-top:12px; background:#16a34a;">▶ 這批魔書開始計時（45 分鐘）</button>
+            <button id="startNewBtn" style="margin-top:12px; background:#16a34a;">▶ 這批魔書開始計時（60 分鐘）</button>
         </div>
 
         <h2>📖 派發紀錄</h2>
@@ -213,7 +213,7 @@
 
     function showNewCodes(codes) {
         $('newCodes').classList.remove('hidden');
-        $('startNewBtn').textContent = '▶ 這批魔書開始計時（45 分鐘）';
+        $('startNewBtn').textContent = '▶ 這批魔書開始計時（60 分鐘）';
         $('codeCards').innerHTML = codes.map(c =>
             `<div class="code-card" data-code="${c}"><div class="code">${c}</div><div class="tip">點擊複製</div></div>`
         ).join('');
@@ -259,7 +259,7 @@
     }
 
     // ===== 計時 =====
-    let clockOffset = 0, limitMs = 45 * 60000;
+    let clockOffset = 0, limitMs = 60 * 60000;
     function syncClock(res) {
         if (res.serverNow) clockOffset = new Date(res.serverNow).getTime() - Date.now();
         if (res.limitMin) limitMs = res.limitMin * 60000;

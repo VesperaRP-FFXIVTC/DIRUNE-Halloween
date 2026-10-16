@@ -389,14 +389,16 @@
         }
 
         /* 推移之輪 */
-        .wheel-wrap { display: flex; flex-direction: column; align-items: center; gap: 1.2cqw; }
-        .wheel { width: 25cqw; height: 25cqw; }
+        .wheel-wrap { display: flex; flex-direction: column; align-items: center; gap: 0.6cqw; flex: 1 1 auto; min-height: 0; }
+        /* 輪子在空間不夠時會自動縮小，避免下方文字被擠出書頁 */
+        .wheel { width: 100%; height: 19cqw; flex: 0 1 19cqw; min-height: 10cqw; }
+        .wheel-ctrl, .wheel-legend { flex: none; }
         .wheel text { font-family: 'Courier New', monospace; font-weight: 700; }
         .wheel .inner { transition: transform 0.35s ease; transform-origin: 100px 100px; }
         .wheel-ctrl { display: flex; align-items: center; gap: 1.6cqw; }
         .wheel-btn {
-            width: 4.4cqw;
-            height: 4.4cqw;
+            width: 4cqw;
+            height: 4cqw;
             border-radius: 50%;
             border: 0.2cqw solid var(--ink-line);
             background: transparent;
@@ -410,7 +412,9 @@
         }
         .wheel-btn:active { background: rgba(43, 23, 12, 0.12); }
         .wheel-num { font-family: var(--hand); font-size: 2cqw; font-weight: 700; min-width: 8cqw; text-align: center; }
-        .wheel-legend { font-family: var(--hand); font-size: 1.3cqw; color: var(--ink-soft); }
+        .wheel-legend { font-family: var(--hand); font-size: 1.3cqw; color: var(--ink); text-align: center; line-height: 1.4; white-space: nowrap; }
+        .wheel-legend em { font-style: normal; color: var(--rubric); font-weight: 700; }
+        .wheel-legend .eg { font-size: 1.25cqw; color: var(--ink-soft); }
 
         /* 鍵盤圖 */
         .kbd { display: flex; flex-direction: column; gap: 0.45cqw; align-items: flex-start; margin: 0 auto 1.6cqw; }
@@ -558,7 +562,7 @@
     <div class="timeup" id="timeup">
         <div class="timeup-box">
             <h2>⏰ 時間到</h2>
-            <p>45 分鐘的冒險結束了！<br>請帶著魔書回到<strong>起點（22 號）</strong><br>找關主結算報酬。</p>
+            <p>60 分鐘的冒險結束了！<br>請帶著魔書回到<strong>起點（22 號）</strong><br>到接待處結算報酬。</p>
             <button id="timeupBtn">知道了</button>
         </div>
     </div>
@@ -667,7 +671,7 @@
                                 <div class="wheel-num">推移 <span id="wheelNum">0</span></div>
                                 <button class="wheel-btn" type="button" data-step="1" aria-label="推移加一">▶</button>
                             </div>
-                            <div class="wheel-legend">外圈的文字 → 對應內圈的文字</div>
+                            <div class="wheel-legend">例：推移 1 時，<em>外圈</em>的 B → <em>內圈</em>的 A</div>
                         </div>
                     </div>
                 </div>
@@ -726,7 +730,7 @@
         // 謎之低語：解封後經過幾分鐘浮現
         const WHISPERS = [
             { after: 8,  text: '解讀的順序：足跡 → 推移之輪 → 墜落的文字。' },
-            { after: 15, text: '旅人說的數字是「十七」。而墜落到最深處的文字，會從天頂重新出現。' }
+            { after: 15, text: '旅人說的數字是「十七」：外圈的文字，對應內圈的文字。墜落到最深處的文字，會從天頂重新出現；所以天頂的文字，要拉回最深處。' }
         ];
 
         // 肉球對照表會出現的字元（大部分是干擾項）
@@ -760,7 +764,7 @@
                 svg += `<ellipse cx="${x}" cy="${y}" rx="11" ry="12.5" fill="${filled ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="5"/>`;
             });
             svg += `<path d="M50 50 C66 50 76 62 76 72 C76 84 66 86 58 83 C54 82 46 82 42 83 C34 86 24 84 24 72 C24 62 34 50 50 50 Z" fill="${pad === 0 ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="5"/>`;
-            if (pad === 2) svg += '<circle cx="50" cy="70" r="6" fill="currentColor"/>';
+            if (pad === 2) svg += '<circle cx="50" cy="69" r="11" fill="currentColor"/>';   // 掌心圓點放大，避免和空心掌心看錯
             return svg + '</svg>';
         }
 
@@ -810,6 +814,9 @@
                 </g>
                 ${ring(86, 13)}
                 <g class="inner" id="wheelInner">${ring(62, 12)}</g>
+                <text x="100" y="88" font-size="10" text-anchor="middle" fill="currentColor">外圈</text>
+                <text x="100" y="101" font-size="12" text-anchor="middle" fill="#7a1a12">↓</text>
+                <text x="100" y="115" font-size="10" text-anchor="middle" fill="currentColor">內圈</text>
                 <path d="M100 23 L96.5 27.5 L103.5 27.5 Z" fill="#7a1a12"/>`;
             wheel.style.color = 'var(--ink)';
             let shift = 0;
@@ -826,7 +833,8 @@
         // ===== 鍵盤圖 =====
         (() => {
             const rows = ['1234567890-=', 'QWERTYUIOP[]\\', "ASDFGHJKL;'", 'ZXCVBNM,./'];
-            const offsets = [0, 1.2, 1.8, 2.4];
+            // 四排對齊成直行（不錯開），「往上一行」才不會有歧義
+            const offsets = [0, 0, 0, 0];
             document.getElementById('kbd').innerHTML = rows.map((row, r) =>
                 `<div class="kbd-row" style="margin-left:${offsets[r]}cqw">` +
                 row.split('').map(k => `<span class="kbd-key">${k.replace('<', '&lt;')}</span>`).join('') +
@@ -1057,7 +1065,7 @@
         }
 
         // ===== 倒數計時 =====
-        let clockOffset = 0, limitMs = 45 * 60000, startedAt = null, timeupShown = false;
+        let clockOffset = 0, limitMs = 60 * 60000, startedAt = null, timeupShown = false;
         function updateTimer() {
             const box = document.getElementById('timerBox');
             const label = document.getElementById('timerLabel'), clock = document.getElementById('timerClock');
