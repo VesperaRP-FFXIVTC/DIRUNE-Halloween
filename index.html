@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DIRUNE - 萬聖節活動</title>
+    <!-- 引入萬聖節字體 Creepster -->
+    <link href="https://fonts.googleapis.com/css2?family=Creepster&family=Noto+Serif+TC:wght@600;900&display=swap" rel="stylesheet">
+    <!-- 引入外部 CSS -->
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- 頂部導覽列 -->
+    <nav class="navbar">
+        <ul class="nav-links">
+            <li><a href="#" class="nav-btn active" data-target="home">首頁</a></li>
+            <li><a href="#" class="nav-btn" data-target="intro">活動介紹</a></li>
+            <li><a href="#" class="nav-btn" data-target="bounty">惡魔懸賞</a></li>
+            <li><a href="#" class="nav-btn" data-target="stamps">禁忌魔書</a></li>
+            <li><a href="#" class="nav-btn" data-target="booking">立即報名</a></li>
+        </ul>
+    </nav>
+
+    <!-- 內容區塊 -->
+    <main class="main-content">
+        
+        <!-- 1. 首頁 -->
+        <section id="home" class="page-section active">
+            <!-- 這裡預留背景圖片位置，目前用 CSS 呈現深灰色塊 -->
+            <div class="bg-placeholder"></div>
+            
+            
+            <div class="hero-content">
+                <img src="image/logo.png" alt="DIRUNE Logo" class="hero-logo">
+                <!-- 特效調暗的標題 -->
+                <h1 class="glow-title">THE SEAL HUNTER</h1>
+                <p class="subtitle">尋印使者</p>
+            </div>
+        </section>
+
+<!-- 2. 活動介紹 (滾動式羊皮紙/毛玻璃設計) -->
+<section id="intro" class="page-section">
+    <!-- 背景圖片與模糊遮罩 -->
+    <div class="intro-bg"></div>
+
+    <div class="container">
+        <h2 class="section-title">活動介紹</h2>
+        
+        <!-- 滾動式文字內容框 -->
+        <div class="scroll-intro-box">
+            <p>傳說中，在一個比海德琳誕生還要久遠的時代……</p>
+            <p>世界曾由十七隻法力無邊的貓咪（雖然其中混進了一隻兔子，但至今無人察覺）所統治。直到某日，一隻赤紅之貓自封為魔王，以絕對的魅力將所有貓咪強行「收編」，世界從此陷入了毛茸茸的暗黑霸權。</p>
+            <p>為了奪回和平，世上第一位<strong>「光之戰士」</strong>挺身而出。他藉由神聖紋章的力量，成功將這群小惡霸全數封印於《禁忌魔書》之中。為了紀念這份安寧，後人便將這一天定名為<strong>「守護天節」</strong>。</p>
+            <p>然而，每當守護天節到來，魔書的封印之力便會大幅衰退。蟄伏數十載的紅貓魔王，終於在今年成功衝破結界！十七隻惡魔貓貓再次傾巢而出，妄圖用牠們的<strong>「粉紅肉球」</strong>重新支配整個世界！</p>
+            
+            <div class="quest-highlight">
+                <p><strong>光之戰士啊，救救我們吧！</strong></p>
+                <p>請協助我們尋回散落各處的十七個紋章，將這群邪惡（又該死地可愛）的貓咪，再次封印回魔書裡吧！</p>
+            </div>
+        </div>
+        <!-- ====== 新增：玩法介紹區塊 ====== -->
+        <div class="gameplay-section">
+            <h3 class="subsection-title">玩法介紹</h3>
+            
+            <div class="gameplay-layout">
+                <!-- 左側：文字描述與按鈕 -->
+                <div class="gameplay-text">
+                    <p>光之戰士們將從起點踏上征途，自由探索右側地圖上標記的<strong>神秘座標</strong>（無需依照順序）。</p>
+                    <p>在這些據點中，你將遭遇各懷絕技的<strong>「邪惡貓咪」</strong>！與牠們互動、完成挑戰並將其擊敗，即可奪回對應的<strong>神聖紋章</strong>。</p>
+                    <p>當你成功集齊 <strong>十五個紋章</strong>，通往 <strong>「魔王城」</strong>的結界便會解開。帶著你的勇氣前往那裡，與紅貓魔王展開最終的宿命決戰吧！</p>
+                    <p>⏳ 冒險<strong>限時 45 分鐘</strong>，請把握時間！</p>
+                    
+                    <!-- 行動按鈕 -->
+                    <div class="action-buttons">
+                        <a href="#" class="btn primary-btn action-link" data-target="booking">立即報名</a>
+                        <a href="#" class="btn secondary-btn action-link" data-target="stamps">領取禁忌魔書</a>
+                    </div>
+                </div>
+                
+                <!-- 右側：地圖圖片預留區 -->
+                <div class="gameplay-map">
+                    <div class="map-placeholder clickable-map" id="map-preview">
+                        <img src="image/Mapp.png" alt="活動地圖">
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- ====== 冒險報酬 ====== -->
+        <div class="reward-section">
+            <h3 class="subsection-title">冒險報酬</h3>
+            <p class="reward-lead">封印惡魔貓的光之戰士，將獲得公會的謝禮</p>
+
+            <!-- ⭐️ 每一張 .reward-card 是一個獎勵階段，直接改文字即可；不需要的整張刪掉 -->
+            <div class="reward-tiers">
+                <div class="reward-card tier-1">
+                    <div class="reward-icon">🕯️</div>
+                    <div class="reward-cond">時限內未能打開魔王城結界</div>
+                    <div class="reward-name">冒險者的辛勞</div>
+                    <p class="reward-desc">按已收集的紋章<br>依懸賞表上的金額發放報酬 / 隊</p>
+                    <a href="#" class="reward-link action-link" data-target="bounty">查看懸賞表 ➔</a>
+                </div>
+                <div class="reward-card tier-2">
+                    <div class="reward-icon">📜</div>
+                    <div class="reward-cond">集齊 15 枚紋章</div>
+                    <div class="reward-name">封印者之證</div>
+                    <p class="reward-desc">打開魔王城結界的勇者<br><strong class="reward-gil">500,000 Gil / 隊</strong></p>
+                </div>
+                <div class="reward-card tier-3">
+                    <div class="reward-badge">最終報酬</div>
+                    <div class="reward-icon">👑</div>
+                    <div class="reward-cond">擊敗紅貓魔王</div>
+                    <div class="reward-name">屠魔英雄</div>
+                    <p class="reward-desc">每個時段最先擊敗魔王的<br>前兩名冒險者<br><strong class="reward-gil">500,000 Gil / 人</strong></p>
+                    <p class="reward-footnote">＊每隊限一名得主。<br>＊若該時段為 8 人滿編小隊，則僅由該隊首名擊敗魔王的冒險者獲得。</p>
+                </div>
+            </div>
+            <p class="reward-note">⏳ 冒險限時 45 分鐘，時間到時尚未打開魔王城結界的隊伍，將依已收集的紋章發放報酬。</p>
+        </div>
+
+        <!-- ====== 燈箱 (Lightbox) 放大圖片用 ====== -->
+        <div id="image-modal" class="image-modal">
+            <span class="close-modal">&times;</span>
+            <img class="modal-content" id="enlarged-img" alt="放大圖片">
+        </div>
+    </div>
+</section>
+
+        <!-- ====== 惡魔懸賞（貓咪介紹） ====== -->
+        <section id="bounty" class="page-section">
+            <div class="shared-bg"></div>
+            <div class="container">
+                <h2 class="section-title">惡魔懸賞令</h2>
+                <p class="section-desc">冒險者公會的告示板上，貼滿了逃出魔書的惡魔貓通緝令……</p>
+                <!-- 通緝令由 script.js 裡的 BOUNTIES 資料自動產生 -->
+                <div class="bounty-board" id="bountyBoard"></div>
+            </div>
+        </section>
+
+<!-- 3. 禁忌魔書 (輸入關主派發的序號) -->
+        <section id="stamps" class="page-section">
+            <div class="shared-bg"></div> 
+            
+            <div class="container">
+                <h2 class="section-title">禁忌魔書</h2>
+                
+                <div class="summon-area">
+                    <p class="summon-text">光之戰士啊，請輸入由關主派發的「魔書契約碼」<br>以喚醒沉睡的禁忌魔書。</p>
+                    
+                    <!-- 裝飾用魔法陣 (點擊此處會觸發輸入框顯示) -->
+                    <div class="magic-circle-display" id="awaken-circle-btn">
+                        <!-- ⭐️ 這裡已經為您修正為正確的檔名 book_get_up.png -->
+                        <img src="image/book_get_up.png" alt="喚醒魔書" class="magic-text-img">
+                    </div>
+                    
+                    <!-- 輸入框區塊 (預設隱藏，點擊魔法陣後才會浮現) -->
+                    <div class="input-group hidden-input" id="book-input-group">
+                        <input type="text" id="confirm-code-input" placeholder="輸入 4 碼契約碼" maxlength="4" style="text-transform: uppercase;">
+                        <button class="btn primary-btn" id="enter-book-btn">啟動</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+       <!-- 4. 立即報名 (契約簽署表單) -->
+        <section id="booking" class="page-section">
+            <div class="shared-bg"></div>
+            <div class="container">
+                <h2 class="section-title">立即報名</h2>
+                <p class="section-desc">簽下你的契約，加入這場守護天節的尋印派對！</p>
+                
+                <div class="booking-form-container">
+                    
+                    <!-- 遊戲資訊小提示 -->
+                    <div class="booking-info-box">
+                        <p>⏳ <strong>遊戲時間：</strong>限時 45 分鐘（從開場說明結束後開始計時）</p>
+                    </div>
+
+                    <!-- 表單標籤：之後會用 JS 攔截送出動作，並傳給 Google Sheets -->
+                    <form id="bookingForm" class="booking-form">
+                        
+                        <div class="form-group">
+                            <label for="playerName">契約者姓名 (默認為主要聯絡人)</label>
+                            <input type="text" id="playerName" name="playerName" required placeholder="例如：Inu@泰坦">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="playerDiscord">聯絡方式 (Discord ID)</label>
+                            <input type="text" id="playerDiscord" name="playerDiscord" required placeholder="請輸入您的 Discord ID">
+                        </div>
+
+                      <div class="form-group">
+                            <label>選擇入場時段</label>
+                            <!-- 隱藏欄位：用來儲存玩家點擊按鈕後選中的時段 -->
+                            <input type="hidden" id="timeSlot" name="timeSlot" required>
+                            
+                            <!-- 時段按鈕面板 (將由 JS 動態生成) -->
+                            <div id="time-slot-grid" class="time-slot-grid">
+                                <div style="color: #a855f7; text-align: center; width: 100%;">讀取時段資料中...</div>
+                            </div>
+                            
+                            <!-- 醒目的提示框 -->
+                            <div class="important-note">
+                                <strong>⚠️ 冒險者請注意：</strong><br>
+                                此入場時段僅為<strong>【聆聽開場劇情與遊戲規則說明】</strong>之用。<br>
+                                每個時段人數上限為 8 人，若您的隊伍未滿 8 人，將會自動與其他冒險者合併編組。說明結束後，各位光之戰士即可解除編制，與您的隊伍自由展開探索！
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="playerCount">同行人數</label>
+                            <select id="playerCount" name="playerCount" required>
+                                <option value="1">1 人 (孤高冒險者)</option>
+                                <option value="2">2 人 (雙人搭檔)</option>
+                                <option value="3">3 人 (三角戰術)</option>
+                                <option value="4">4 人 (Light Party)</option>
+                                <option value="5">5 人 (五人小隊)</option>
+                                <option value="6">6 人 (六合星芒)</option>
+                                <option value="7">7 人 (七曜勇者)</option>
+                                <option value="8">8 人 (Full Party)</option>
+                            </select>
+                            
+                        </div>
+
+                        <button type="submit" class="btn primary-btn submit-btn">✍️ 簽署契約 (送出報名)</button>
+                    </form>
+                </div>
+            </div>
+        </section>
+
+    </main>
+<!-- 音樂播放器本體 (loop 代表無限循環播放) -->
+<!-- 請準備好您的音樂檔，並替換下方的 src 路徑 -->
+<audio id="bgm" src="image/bgm.mp3" loop></audio>
+
+<!-- 懸浮在右下角的控制按鈕 -->
+<button id="music-btn" class="music-btn">🎵 播放音樂</button>
+    <!-- 引入外部 JavaScript -->
+    <script src="stamps.js"></script>
+    <script src="script.js"></script>
+
+<!-- ====== 自訂魔法風格彈出視窗 (Modal) ====== -->
+    <div id="magic-alert-modal" class="magic-alert-modal">
+        <div class="magic-alert-content">
+            <!-- 裝飾邊框與角落符號 -->
+            <div class="magic-alert-border">
+                <span class="alert-corner alert-top-left">⚜</span>
+                <span class="alert-corner alert-top-right">⚜</span>
+                <span class="alert-corner alert-bottom-left">⚜</span>
+                <span class="alert-corner alert-bottom-right">⚜</span>
+                
+                <h3 class="alert-title">🔮 契約完成 🔮</h3>
+                <p id="magic-alert-message" class="alert-message">🐾 契約簽署成功！期待您參加守護天節！</p>
+                
+                <button id="magic-alert-btn" class="btn primary-btn alert-btn">踏上旅途</button>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

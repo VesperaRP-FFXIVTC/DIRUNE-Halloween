@@ -1,0 +1,1333 @@
+/* 全域設定 */
+:root {
+    --bg-color: #0b0510; /* 深邃黑紫背景 */
+    --primary-orange: #ff7300;
+    --dark-orange: #cc5c00;
+    --primary-purple: #6b21a8;
+    --light-purple: #a855f7;
+    --text-color: #f3e8ff;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    font-family: 'Helvetica Neue', Arial, sans-serif;
+    overflow-x: hidden;
+}
+
+/* 導覽列 */
+.navbar {
+    position: fixed;
+    top: 0;
+    width: 100%;
+    background: rgba(11, 5, 16, 0.9);
+    backdrop-filter: blur(5px);
+    border-bottom: 1px solid var(--primary-purple);
+    z-index: 100;
+    padding: 15px 0;
+}
+
+.nav-links {
+    display: flex;
+    justify-content: center;
+    list-style: none;
+    gap: 20px;
+}
+
+.nav-links a {
+    color: var(--text-color);
+    text-decoration: none;
+    font-weight: bold;
+    padding: 5px 15px;
+    border-radius: 20px;
+    transition: all 0.3s ease;
+}
+
+.nav-links a:hover, .nav-links a.active {
+    background-color: var(--primary-purple);
+    color: #fff;
+    box-shadow: 0 0 10px var(--primary-purple);
+}
+
+/* 分頁切換邏輯 */
+.page-section {
+    display: none; /* 預設隱藏所有頁面 */
+    min-height: 100vh;
+    padding-top: 80px; /* 避開固定導覽列 */
+}
+
+.page-section.active {
+    display: block; /* 顯示當前頁面 */
+    animation: fadeIn 0.5s ease-in-out;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* 共用容器與標題 */
+.container {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 40px 20px;
+    text-align: center;
+}
+
+.section-title {
+    color: var(--primary-orange);
+    font-size: 2rem;
+    margin-bottom: 10px;
+    text-shadow: 0 0 5px var(--dark-orange);
+}
+
+.section-desc {
+    margin-bottom: 30px;
+    color: #aaa;
+}
+
+/* 預留框樣式 (介紹與預約頁) */
+.wireframe-box {
+    border: 2px dashed var(--primary-purple);
+    background: rgba(107, 33, 168, 0.1);
+    border-radius: 10px;
+    padding: 100px 20px;
+    color: var(--light-purple);
+    font-size: 1.2rem;
+}
+
+/* ================= 首頁 ================= */
+#home {
+    position: relative;
+    /* 移除原本的 display: flex，才不會讓首頁永遠顯示 */
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+}
+
+/* 只有當首頁是 active 狀態時，才讓他變成 flex 排版 */
+#home.active {
+    display: flex;
+}
+
+/* 首頁背景圖片預留區 */
+.bg-placeholder {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: #1a1525; 
+    background-image: url(''); 
+    background-size: cover;
+    background-position: center;
+    opacity: 0.4; 
+    z-index: -1;
+}
+
+.hero-content {
+    z-index: 1;
+}
+
+/* 套用萬聖節字體的發光標題 */
+.glow-title {
+    font-family: 'Creepster', cursive; /* 套用萬聖節字體 */
+    font-size: 5rem; /* 字體稍微放大更有張力 */
+    font-weight: normal; /* 這個特殊字體不需要加粗就很好看 */
+    color: #fff;
+    letter-spacing: 5px; /* 增加字距 */
+    line-height: 1.1;
+    margin-bottom: 20px;
+    /* 發光特效 */
+    text-shadow: 
+        0 0 5px var(--primary-orange),
+        0 0 10px var(--dark-orange),
+        0 0 20px var(--dark-orange);
+}
+
+.subtitle {
+    font-size: 1.5rem;
+    color: var(--light-purple);
+    letter-spacing: 5px;
+}
+.hero-logo {
+    width: 800px;         /* 【修改】將寬度縮小到 280px，這是一個比較精緻的正常大小 */
+    max-width: 80vw;      /* 確保在手機螢幕上也不會超過畫面邊界 */
+    height: auto;
+    margin-bottom: 15px;  /* 控制與下方「THE SEAL HUNTER」文字的距離 */
+    
+    /* 保持原有的發光與漂浮特效 */
+    filter: drop-shadow(0 0 15px rgba(255, 115, 0, 0.6)); 
+    animation: float 3s ease-in-out infinite; 
+}
+
+/* ================= 魔書召喚區塊 ================= */
+.summon-area {
+    background: rgba(11, 5, 16, 0.8);
+    border: 1px solid var(--primary-purple);
+    border-radius: 15px;
+    padding: 60px 20px;
+    text-align: center;
+    max-width: 650px;
+    margin: 30px auto;
+    box-shadow: 0 0 30px rgba(107, 33, 168, 0.4) inset;
+    backdrop-filter: blur(5px);
+}
+
+.summon-area.hidden {
+    display: none;
+}
+
+.summon-text {
+    font-size: 1.25rem;
+    line-height: 2;
+    color: #d8b4fe;
+    margin-bottom: 40px;
+    text-shadow: 0 0 8px rgba(216, 180, 254, 0.5);
+}
+
+/* ================= 魔法陣展示區 ================= */
+/* 1. 確保整個區塊在網頁正中間 */
+.magic-circle-display {
+    position: relative;
+    width: 300px;  /* 稍微放大，讓陣法更有氣勢 */
+    height: 300px;
+    margin: 0 auto; /* 讓容器在網頁中水平置中 */
+}
+
+/* 2. 背景圖片層與旋轉設定 */
+.magic-circle-display::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background-image: url('image/magic.circle.png'); /* 請確認檔名 */
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    
+    /* ⭐️ 神奇魔法：這行能把圖片的「黑底」完全變透明，只留下紅色的發光陣法！ */
+    mix-blend-mode: screen; 
+    
+    border-radius: 50%; /* 確保旋轉時邊緣是圓形的 */
+    animation: spin-slow 15s linear infinite; /* 套用旋轉 */
+    z-index: 1;
+}
+
+/* 確保旋轉動畫存在 (如果之前不小心刪掉了，這段能補回來) */
+@keyframes spin-slow { 
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); } 
+}
+
+/* ================= 魔法陣中央的藝術字圖片 ================= */
+.magic-text-img {
+    position: absolute;
+    top: 52%; /* 稍微下修 2% 以更完美對準魔法陣的圓心 */
+    left: 50%;
+    transform: translate(-50%, -50%); /* 數學上絕對置中 */
+    z-index: 2; /* 確保在旋轉陣法上方 */
+    
+    /* 1. 調整藝術字的大小，配合 300px 的魔法陣 */
+    width: 140px; 
+    height: auto;
+    
+    /* 2. 在背景幫藝術字加上紅/橘色發光，讓它與魔法陣更融為一體 (可依喜好調整) */
+    filter: drop-shadow(0 0 8px rgba(255, 0, 0, 0.7)) drop-shadow(0 0 15px rgba(255, 115, 0, 0.4));
+    
+    /* 3. 防止玩家不小心選取、拖曳或點擊圖片 */
+    pointer-events: none;
+    user-select: none;
+    
+    /* 微調，確保圖片不受魔法陣混合模式影響 */
+    mix-blend-mode: normal; 
+}
+
+/* 契約碼與輸入框 */
+.contract-code {
+    font-size: 3.5rem;
+    color: var(--primary-orange);
+    font-weight: bold;
+    letter-spacing: 15px;
+    margin: 20px 0;
+    text-shadow: 0 0 20px rgba(255, 115, 0, 0.8);
+    font-family: monospace;
+}
+
+.summon-hint {
+    color: #aaa;
+    margin-bottom: 25px;
+}
+
+.input-group {
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+    max-width: 400px;
+    margin: 0 auto;
+}
+
+.input-group input {
+    flex: 1;
+    padding: 15px;
+    border-radius: 8px;
+    border: 2px solid var(--primary-purple);
+    background: #1a1525;
+    color: #fff;
+    font-size: 1.2rem;
+    text-align: center;
+    letter-spacing: 8px;
+    font-weight: bold;
+}
+
+.input-group input:focus {
+    outline: none;
+    border-color: var(--primary-orange);
+    box-shadow: 0 0 15px rgba(255, 115, 0, 0.5);
+}
+/* 導覽列 */
+.navbar {
+    position: fixed;
+    top: 0;
+    width: 100%;
+    background: rgba(11, 5, 16, 0.9);
+    backdrop-filter: blur(5px);
+    border-bottom: 1px solid var(--primary-purple);
+    z-index: 100;
+    padding: 25px 0; /* 【修改】將上下內距加大，讓導覽列整體變寬（變厚） */
+}
+
+.nav-links {
+    display: flex;
+    justify-content: center;
+    list-style: none;
+    gap: 30px; /* 【修改】加大按鈕之間的橫向間距，不要擠在一起 */
+}
+
+.nav-links a {
+    color: var(--text-color);
+    text-decoration: none;
+    font-weight: bold;
+    font-size: 1.1rem; /* 【修改】字體稍微放大一點點 */
+    padding: 12px 25px; /* 【修改】加大按鈕本身的點擊範圍與視覺大小 */
+    border-radius: 30px; /* 【修改】配合變大的按鈕，稍微增加圓角 */
+    transition: all 0.3s ease;
+}
+
+.nav-links a:hover, .nav-links a.active {
+    background-color: var(--primary-purple);
+    color: #fff;
+    box-shadow: 0 0 10px var(--primary-purple);
+}
+
+/* 分頁切換邏輯 */
+.page-section {
+    display: none; /* 預設隱藏所有頁面 */
+    min-height: 100vh;
+    padding-top: 110px; /* 【修改】因為導覽列變寬了，這裡往下推多一點，避免蓋住內容 */
+}
+.bg-placeholder {
+    /* 其他設定保留... */
+    background-color: #1a1525; 
+    
+    /* 在這裡填入您的圖片路徑 */
+    background-image:url('image/banner.png');
+    
+    background-size: cover;
+    background-position: center;
+    opacity: 0.4; 
+    z-index: -1;
+}
+/* 音樂控制按鈕 */
+.music-btn {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background: rgba(11, 5, 16, 0.8);
+    border: 2px solid var(--primary-orange);
+    color: var(--primary-orange);
+    padding: 10px 15px;
+    border-radius: 30px;
+    font-weight: bold;
+    cursor: pointer;
+    z-index: 1000;
+    box-shadow: 0 0 10px rgba(255, 115, 0, 0.4);
+    backdrop-filter: blur(5px);
+    transition: 0.3s;
+}
+
+.music-btn:hover {
+    background: var(--primary-orange);
+    color: #fff;
+    box-shadow: 0 0 15px var(--primary-orange);
+}
+.subtitle {
+    font-size: 2rem; /* 稍微放大字體 */
+    font-weight: 900; /* 使用最粗的字重，讓中文字更有力量 */
+    color: #fff; /* 將本體改成白色，讓外圍的發光更明顯 */
+    letter-spacing: 15px; /* 拉大字距，增加神秘感 */
+    margin-top: -10px; /* 稍微往上靠，與上面的標題更緊湊 */
+    
+    /* 加上紫橘雙色混合的發光特效 */
+    text-shadow: 
+        0 0 5px var(--light-purple),
+        0 0 10px var(--primary-purple),
+        0 0 20px var(--primary-orange),
+        0 0 30px var(--dark-orange);
+}
+/* 活動介紹專屬排版 */
+.intro-content {
+    background: rgba(11, 5, 16, 0.6);
+    border: 1px solid var(--primary-purple);
+    border-radius: 15px;
+    padding: 40px;
+    text-align: left;
+    line-height: 1.8;
+    font-size: 1.1rem;
+    box-shadow: 0 0 20px rgba(107, 33, 168, 0.3) inset;
+}
+
+.intro-content p {
+    margin-bottom: 20px;
+    color: #d8b4fe; /* 淺紫文字增添奇幻感 */
+}
+
+.intro-content strong {
+    color: var(--primary-orange); /* 強調關鍵字 */
+}
+
+.intro-content .intro-callout {
+    margin-top: 30px;
+    margin-bottom: 0;
+    text-align: center;
+    font-size: 1.3rem;
+    font-weight: bold;
+    color: #fff;
+    text-shadow: 0 0 10px var(--primary-purple);
+}
+/* ================= 活動介紹 (滾動式 + 模糊背景) ================= */
+#intro {
+    position: relative;
+    padding-bottom: 60px;
+}
+
+/* 背景圖片 + 模糊特效 (對應主頁背景) */
+.intro-bg {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    /* 請確保圖片路徑與主頁一致 */
+    background-image: url('image/banner.png'); 
+    background-size: cover;
+    background-position: center;
+    filter: blur(8px); /* 毛玻璃模糊效果 */
+    transform: scale(1.05); /* 放大一點點，避免模糊邊緣產生白邊 */
+    opacity: 0.35;
+    z-index: -1;
+}
+
+/* 滾動式文字容器 */
+.scroll-intro-box {
+    max-width: 800px;
+    margin: 0 auto;
+    background: rgba(11, 5, 16, 0.75); /* 半透明深色底 */
+    border: 2px solid var(--primary-purple);
+    border-radius: 15px;
+    padding: 40px;
+    text-align: left;
+    backdrop-filter: blur(10px); /* 讓背景有玻璃透視感 */
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8), inset 0 0 15px rgba(107, 33, 168, 0.3);
+}
+
+.scroll-intro-box p {
+    margin-bottom: 20px;
+    color: var(--text-color);
+    font-size: 1.1rem;
+    line-height: 1.8;
+}
+
+.scroll-intro-box strong {
+    color: var(--primary-orange);
+}
+
+/* 強調區塊 */
+.quest-highlight {
+    margin-top: 30px;
+    padding: 20px;
+    border-left: 4px solid var(--primary-orange);
+    background: rgba(255, 115, 0, 0.08);
+    border-radius: 0 10px 10px 0;
+    text-align: center;
+}
+
+.quest-highlight p {
+    margin-bottom: 5px;
+    color: #fff;
+    font-size: 1.2rem;
+}
+/* ================= 玩法介紹 (左文右圖) ================= */
+.gameplay-section {
+    margin-top: 50px;
+    background: rgba(11, 5, 16, 0.75);
+    border: 2px solid var(--primary-purple);
+    border-radius: 15px;
+    padding: 40px;
+    backdrop-filter: blur(10px);
+}
+
+.subsection-title {
+    color: var(--primary-orange);
+    font-size: 1.8rem;
+    margin-bottom: 25px;
+    text-align: center;
+    letter-spacing: 2px;
+}
+
+.gameplay-layout {
+    display: flex;
+    align-items: center;
+    gap: 40px;
+}
+
+.gameplay-text {
+    flex: 1;
+    text-align: left;
+    font-size: 1.1rem;
+    line-height: 1.8;
+    color: var(--text-color);
+}
+
+.gameplay-text strong {
+    color: var(--primary-orange);
+}
+
+/* 右側地圖預留位 */
+.gameplay-map {
+    flex: 1;
+}
+
+.map-placeholder {
+    width: 100%;
+    aspect-ratio: 4 / 3; /* 預設地圖比例 */
+    background: rgba(107, 33, 168, 0.1);
+    border: 2px dashed var(--light-purple);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--light-purple);
+    font-size: 1.2rem;
+    overflow: hidden;
+}
+
+.map-placeholder img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+/* 行動按鈕 */
+.action-buttons {
+    display: flex;
+    gap: 15px;
+    margin-top: 25px;
+}
+
+.btn {
+    padding: 12px 24px;
+    border-radius: 30px;
+    font-weight: bold;
+    text-decoration: none;
+    transition: 0.3s;
+    text-align: center;
+    flex: 1;
+}
+
+.primary-btn {
+    background-color: var(--primary-orange);
+    color: #fff;
+    box-shadow: 0 0 15px rgba(255, 115, 0, 0.5);
+}
+
+.primary-btn:hover {
+    background-color: var(--dark-orange);
+    box-shadow: 0 0 20px var(--primary-orange);
+}
+
+.secondary-btn {
+    background-color: transparent;
+    border: 2px solid var(--light-purple);
+    color: var(--light-purple);
+}
+
+.secondary-btn:hover {
+    background-color: var(--primary-purple);
+    color: #fff;
+    box-shadow: 0 0 15px var(--primary-purple);
+}
+
+/* 手機版：改為上下排版 */
+@media (max-width: 768px) {
+    .gameplay-layout {
+        flex-direction: column;
+    }
+    .action-buttons {
+        flex-direction: column;
+    }
+}
+/* ================= 圖片放大燈箱 (Lightbox) ================= */
+/* 滑鼠移至地圖時的提示效果 */
+.clickable-map {
+    cursor: pointer;
+    transition: transform 0.3s;
+}
+
+.clickable-map:hover {
+    transform: scale(1.02);
+    box-shadow: 0 0 15px var(--primary-orange);
+    border-color: var(--primary-orange);
+    color: var(--primary-orange);
+}
+
+/* 燈箱背景遮罩 */
+.image-modal {
+    display: none; /* 預設隱藏 */
+    position: fixed;
+    z-index: 9999; /* 確保顯示在最上層 */
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.85); /* 半透明黑色背景 */
+    backdrop-filter: blur(8px); /* 讓背後網頁模糊 */
+    justify-content: center;
+    align-items: center;
+}
+
+/* 彈出放大的圖片 */
+.modal-content {
+    max-width: 90%;
+    max-height: 85vh; /* 避免圖片太長超出螢幕 */
+    border: 3px solid var(--primary-purple);
+    border-radius: 10px;
+    box-shadow: 0 0 30px rgba(107, 33, 168, 0.8);
+    animation: zoomIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); /* 彈性放大動畫 */
+}
+
+@keyframes zoomIn {
+    from { transform: scale(0.7); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+}
+
+/* 關閉按鈕 (X) */
+.close-modal {
+    position: absolute;
+    top: 30px;
+    right: 40px;
+    color: #fff;
+    font-size: 50px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: color 0.3s;
+}
+
+.close-modal:hover {
+    color: var(--primary-orange);
+}
+/* ================= 報名表單 (契約簽署) ================= */
+.booking-form-container {
+    max-width: 500px;
+    margin: 0 auto;
+    background: rgba(11, 5, 16, 0.85);
+    border: 2px solid var(--primary-purple);
+    border-radius: 15px;
+    padding: 40px 30px;
+    box-shadow: 0 0 20px rgba(107, 33, 168, 0.4) inset, 0 10px 30px rgba(0,0,0,0.8);
+    backdrop-filter: blur(10px);
+}
+
+.booking-form {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    text-align: left;
+}
+
+.booking-form .form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.booking-form label {
+    color: var(--light-purple);
+    font-weight: bold;
+    letter-spacing: 1px;
+}
+
+.booking-form input,
+.booking-form select {
+    padding: 15px;
+    border-radius: 8px;
+    border: 1px solid rgba(168, 85, 247, 0.5);
+    background: rgba(0, 0, 0, 0.6);
+    color: #fff;
+    font-size: 1.1rem;
+    transition: all 0.3s ease;
+    font-family: inherit;
+}
+
+/* 輸入框被點擊時的發光特效 */
+.booking-form input:focus,
+.booking-form select:focus {
+    outline: none;
+    border-color: var(--primary-orange);
+    box-shadow: 0 0 15px rgba(255, 115, 0, 0.4);
+    background: rgba(0, 0, 0, 0.8);
+}
+
+.booking-form input::placeholder {
+    color: rgba(255, 255, 255, 0.3);
+}
+
+/* 調整下拉選單內的選項顏色 */
+.booking-form select option {
+    background: var(--bg-color);
+    color: #fff;
+}
+
+.submit-btn {
+    margin-top: 15px;
+    font-size: 1.2rem;
+    padding: 15px;
+    cursor: pointer;
+    width: 100%;
+    border: none;
+    letter-spacing: 2px;
+}
+/* ================= 報名表單新增樣式 ================= */
+/* 報名資訊小方塊 (時間與費用) */
+.booking-info-box {
+    background: rgba(255, 115, 0, 0.08);
+    border: 1px dashed var(--primary-orange);
+    border-radius: 8px;
+    padding: 15px;
+    margin-bottom: 25px;
+    color: #f3e8ff;
+    text-align: center;
+    line-height: 1.8;
+    font-size: 1.1rem;
+}
+
+.booking-info-box strong {
+    color: var(--primary-orange);
+}
+
+/* ================= 報名表單重要提示框 ================= */
+.important-note {
+    background: rgba(255, 115, 0, 0.1); /* 微微的橘色背景 */
+    border-left: 4px solid var(--primary-orange); /* 左側橘色粗邊框 */
+    border-radius: 0 8px 8px 0;
+    padding: 12px 15px;
+    margin-top: 15px;
+    color: #f3e8ff; /* 提高文字亮度 */
+    font-size: 0.95rem; /* 字體稍微放大 */
+    line-height: 1.6;
+}
+
+.important-note strong {
+    color: var(--primary-orange); /* 關鍵字橘色高亮 */
+    font-weight: bold;
+}
+/* ================= 共用模糊背景 (活動介紹、禁忌魔書、報名頁) ================= */
+/* 確保這些區塊能夠限制住絕對定位的背景 */
+#intro, #stamps, #booking {
+    position: relative;
+    overflow: hidden; /* 隱藏放大的邊緣，避免出現卷軸 */
+}
+
+/* 共用背景圖片與模糊特效 */
+.shared-bg {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image: url('image/banner.png'); /* 確認圖片路徑與主頁相同 */
+    background-size: cover;
+    background-position: center;
+    filter: blur(8px);
+    transform: scale(1.05); /* 稍微放大避免模糊邊緣露白 */
+    opacity: 0.35;
+    z-index: -1;
+}
+/* 魔書領取提示小字 */
+.team-leader-note {
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 0.95rem;
+    margin-top: -20px;
+    margin-bottom: 30px;
+    padding: 10px;
+    border: 1px dashed rgba(255, 115, 0, 0.4);
+    background: rgba(255, 115, 0, 0.05);
+    border-radius: 8px;
+    display: inline-block;
+}
+/* ================= 報名時段按鈕面板 ================= */
+.time-slot-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+    gap: 12px;
+    margin-top: 5px;
+}
+
+.time-btn {
+    background: rgba(0, 0, 0, 0.6);
+    border: 1px solid rgba(168, 85, 247, 0.5);
+    border-radius: 8px;
+    padding: 10px 5px;
+    color: #fff;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.time-btn .time-text {
+    font-size: 1.1rem;
+    font-weight: bold;
+    margin-bottom: 3px;
+}
+
+.time-btn .spots-text {
+    font-size: 0.75rem;
+    color: #4ade80; /* 綠色表示有空位 */
+}
+
+/* 滑鼠移過去的效果 */
+.time-btn:hover:not(:disabled) {
+    background: rgba(255, 115, 0, 0.2);
+    border-color: var(--primary-orange);
+    box-shadow: 0 0 10px rgba(255, 115, 0, 0.4);
+}
+
+/* 被選中的狀態 */
+.time-btn.selected {
+    background: var(--primary-orange);
+    border-color: #fff;
+    box-shadow: 0 0 15px var(--primary-orange);
+    color: #fff;
+}
+.time-btn.selected .spots-text {
+    color: #fff;
+}
+
+/* 已滿 / 反灰停用狀態 */
+.time-btn:disabled {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.2);
+    color: rgba(255, 255, 255, 0.3);
+    cursor: not-allowed;
+}
+.time-btn:disabled .spots-text {
+    color: #ef4444; /* 紅色表示已滿 */
+}
+/* ================= 自訂魔法彈出視窗 (Magic Modal) ================= */
+.magic-alert-modal {
+    display: none; /* 預設隱藏 */
+    position: fixed;
+    z-index: 10000; /* 超高層級，蓋在所有東西上面 */
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.75); /* 背景變暗 */
+    backdrop-filter: blur(8px); /* 背景模糊效果 */
+    justify-content: center;
+    align-items: center;
+}
+
+/* 視窗主體：暗紫漸層 */
+.magic-alert-content {
+    background: radial-gradient(circle, #1a1226 0%, #0b0510 100%);
+    width: 90%;
+    max-width: 460px;
+    border-radius: 15px;
+    padding: 8px; /* 保留給雙層邊框的空間 */
+    box-shadow: 0 0 30px rgba(168, 85, 247, 0.5);
+    animation: alertZoomIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.15); /* 彈性登場 */
+}
+
+@keyframes alertZoomIn {
+    from { transform: scale(0.85); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+}
+
+/* 金色/紫橘色精緻雙層邊框 */
+.magic-alert-border {
+    position: relative;
+    border: 2px solid #d4af37; /* 金色外框 */
+    border-radius: 10px;
+    padding: 30px 20px;
+    text-align: center;
+}
+
+.magic-alert-border::before {
+    content: '';
+    position: absolute;
+    top: 4px; bottom: 4px; left: 4px; right: 4px;
+    border: 1px solid rgba(212, 175, 55, 0.4); /* 金色內細框 */
+    border-radius: 6px;
+    pointer-events: none;
+}
+
+/* 角落裝飾符號 ⚜ */
+.alert-corner {
+    position: absolute;
+    color: #d4af37;
+    font-size: 1.2rem;
+    line-height: 1;
+}
+.alert-top-left { top: 8px; left: 10px; }
+.alert-top-right { top: 8px; right: 10px; }
+.alert-bottom-left { bottom: 8px; left: 10px; }
+.alert-bottom-right { bottom: 8px; right: 10px; }
+
+/* 對話框標題與內容 */
+.alert-title {
+    font-size: 1.6rem;
+    color: var(--primary-orange);
+    margin: 0 0 18px 0;
+    letter-spacing: 3px;
+    text-shadow: 0 0 10px rgba(255, 115, 0, 0.6);
+}
+
+.alert-message {
+    font-size: 1.1rem;
+    color: #f3e8ff;
+    line-height: 1.6;
+    margin: 0 0 25px 0;
+    letter-spacing: 1px;
+}
+
+/* 關閉按鈕（踏上旅途） */
+.alert-btn {
+    min-width: 130px;
+    padding: 12px 30px;
+    font-size: 1.1rem;
+    border: none;
+    cursor: pointer;
+    box-shadow: 0 0 15px rgba(255, 115, 0, 0.4);
+    transition: all 0.3s ease;
+}
+
+.alert-btn:hover {
+    box-shadow: 0 0 25px var(--primary-orange);
+}
+
+/* ================= 魔法陣點擊互動與輸入框浮現動畫 ================= */
+/* 讓魔法陣變成可點擊狀態 */
+#awaken-circle-btn {
+    cursor: pointer;
+    transition: transform 0.3s ease, filter 0.3s ease;
+}
+
+#awaken-circle-btn:hover {
+    transform: scale(1.05); /* 滑鼠懸停時微微放大 */
+    filter: drop-shadow(0 0 15px rgba(255, 0, 0, 0.5)); /* 增加外發光 */
+}
+
+/* 輸入框預設隱藏狀態 */
+.hidden-input {
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(20px); /* 初始位置稍微往下 */
+    transition: all 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275); /* 帶有彈性的浮現特效 */
+    margin-top: 10px; 
+}
+
+/* 觸發後顯示的狀態 */
+.hidden-input.show {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0); /* 回到原位 */
+    margin-top: 40px; 
+}
+/* =========================================================
+   導覽列：手機版（5 個分頁）
+   ========================================================= */
+@media (max-width: 768px) {
+    .navbar { padding: 12px 0; }
+    .nav-links {
+        gap: 4px;
+        padding: 0 8px;
+        justify-content: safe center;
+        overflow-x: auto;
+        scrollbar-width: none;
+    }
+    .nav-links::-webkit-scrollbar { display: none; }
+    .nav-links a {
+        font-size: 0.9rem;
+        padding: 8px 11px;
+        white-space: nowrap;
+        display: block;
+    }
+    .page-section { padding-top: 75px; }
+}
+
+/* =========================================================
+   冒險報酬（活動介紹頁內）
+   ========================================================= */
+.reward-section {
+    margin-top: 50px;
+    background: rgba(11, 5, 16, 0.75);
+    border: 2px solid var(--primary-purple);
+    border-radius: 15px;
+    padding: 40px;
+    backdrop-filter: blur(10px);
+}
+.reward-lead { color: #c9b3e6; margin: -12px 0 30px; }
+
+.reward-tiers {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1.15fr;
+    gap: 20px;
+    align-items: end;
+}
+.reward-card {
+    position: relative;
+    border-radius: 14px;
+    padding: 28px 18px 24px;
+    background: linear-gradient(180deg, rgba(107, 33, 168, 0.25), rgba(11, 5, 16, 0.6));
+    border: 1px solid rgba(168, 85, 247, 0.5);
+    transition: transform 0.3s, box-shadow 0.3s;
+}
+.reward-card:hover { transform: translateY(-4px); }
+.reward-card.tier-2 {
+    border-color: rgba(255, 115, 0, 0.6);
+    background: linear-gradient(180deg, rgba(255, 115, 0, 0.15), rgba(11, 5, 16, 0.6));
+}
+.reward-card.tier-3 {
+    padding: 38px 18px 30px;
+    border: 2px solid #fbbf24;
+    background: linear-gradient(180deg, rgba(251, 191, 36, 0.18), rgba(92, 20, 10, 0.55));
+    box-shadow: 0 0 25px rgba(251, 191, 36, 0.25), inset 0 0 20px rgba(251, 191, 36, 0.1);
+}
+.reward-card.tier-3:hover { box-shadow: 0 0 35px rgba(251, 191, 36, 0.45); }
+
+.reward-badge {
+    position: absolute;
+    top: -13px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #fbbf24;
+    color: #3b1a00;
+    font-weight: bold;
+    font-size: 0.8rem;
+    letter-spacing: 2px;
+    padding: 4px 14px;
+    border-radius: 20px;
+    white-space: nowrap;
+}
+.reward-icon { font-size: 2.4rem; margin-bottom: 8px; }
+.tier-3 .reward-icon { font-size: 3rem; filter: drop-shadow(0 0 10px rgba(251, 191, 36, 0.6)); }
+.reward-cond { color: var(--light-purple); font-size: 0.9rem; font-weight: bold; letter-spacing: 1px; }
+.tier-2 .reward-cond { color: var(--primary-orange); }
+.tier-3 .reward-cond { color: #fbbf24; }
+.reward-name {
+    font-family: 'Noto Serif TC', serif;
+    font-weight: 900;
+    font-size: 1.35rem;
+    color: #fff;
+    margin: 6px 0 10px;
+}
+.reward-desc { color: #d8c8ec; font-size: 0.95rem; line-height: 1.7; }
+
+@media (max-width: 768px) {
+    .reward-section { padding: 30px 18px; }
+    .reward-tiers { grid-template-columns: 1fr; gap: 24px; }
+}
+
+/* =========================================================
+   惡魔懸賞令（通緝告示板）
+   ========================================================= */
+.bounty-board {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 26px 18px;
+    padding: 10px 6px;
+}
+
+/* ----- 共用：泛黃紙張 ----- */
+.poster {
+    --paper: #e9d6ac;
+    --ink: #2b170c;
+    position: relative;
+    color: var(--ink);
+    font-family: 'Noto Serif TC', serif;
+    text-align: center;
+    background:
+        radial-gradient(circle at 18% 22%, rgba(140, 90, 30, 0.22), transparent 30%),
+        radial-gradient(circle at 85% 78%, rgba(120, 70, 20, 0.25), transparent 35%),
+        radial-gradient(circle at 70% 15%, rgba(90, 50, 10, 0.12), transparent 22%),
+        linear-gradient(180deg, #efdfba, var(--paper) 60%, #dcc394);
+    clip-path: polygon(0% 1.5%, 6% 0%, 20% 1.2%, 35% 0.2%, 52% 1.4%, 68% 0%, 84% 1%, 100% 0.4%,
+                       99.2% 20%, 100% 45%, 99% 70%, 100% 98.5%, 88% 100%, 70% 98.8%, 50% 100%,
+                       30% 98.6%, 12% 100%, 0% 99%, 0.8% 75%, 0% 50%, 1% 25%);
+    filter: drop-shadow(0 8px 12px rgba(0, 0, 0, 0.6));
+}
+.poster .pin {
+    position: absolute;
+    top: 6px;
+    left: 50%;
+    width: 11px;
+    height: 11px;
+    margin-left: -5.5px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 35% 30%, #ffb27a, #a33a00 60%, #4a1500);
+    box-shadow: 0 2px 3px rgba(0, 0, 0, 0.5);
+}
+.poster-head {
+    font-family: 'Creepster', cursive;
+    color: #8f1b10;
+    letter-spacing: 3px;
+    line-height: 1;
+}
+.poster-sub {
+    letter-spacing: 3px;
+    font-weight: 600;
+    border-top: 1px solid rgba(43, 23, 12, 0.5);
+    border-bottom: 1px solid rgba(43, 23, 12, 0.5);
+    padding: 2px 0;
+}
+.poster-photo {
+    position: relative;
+    aspect-ratio: 1;
+    border: 2px solid rgba(43, 23, 12, 0.7);
+    outline: 1px solid rgba(43, 23, 12, 0.35);
+    outline-offset: 3px;
+    background: radial-gradient(circle, rgba(255, 245, 220, 0.6), rgba(200, 170, 120, 0.4));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+}
+.poster-photo img,
+.poster-photo > svg:not(.bunny-ears) {
+    width: 82%;
+    height: 82%;
+    object-fit: contain;
+    filter: brightness(0);
+    opacity: 0.88;
+}
+.poster.mystery .poster-photo img,
+.poster.mystery .poster-photo > svg:not(.bunny-ears) { filter: brightness(0) blur(6px); opacity: 0.7; }
+.poster-photo .q-mark {
+    position: absolute;
+    font-family: 'Creepster', cursive;
+    font-size: 2.8em;
+    color: rgba(233, 214, 172, 0.85);
+}
+/* 兔子彩蛋 */
+.poster-photo .bunny-ears {
+    position: absolute;
+    top: 2%;
+    left: 50%;
+    width: 36%;
+    height: auto;
+    transform: translateX(-50%);
+    opacity: 0.88;
+}
+.poster-name { font-weight: 900; line-height: 1.3; }
+.poster-title { color: #6b3a1c; }
+.stars { color: #8f1b10; letter-spacing: 1px; }
+.poster-crime {
+    text-align: left;
+    line-height: 1.7;
+    border-top: 1px dashed rgba(43, 23, 12, 0.45);
+    padding-top: 8px;
+}
+.poster-crime b { color: #8f1b10; margin-right: 4px; }
+.poster-foot {
+    display: flex;
+    justify-content: space-between;
+    gap: 8px;
+    font-weight: 600;
+    padding-top: 8px;
+    border-top: 1px solid rgba(43, 23, 12, 0.5);
+}
+.poster-foot .gil { color: #8f1b10; white-space: nowrap; }
+.poster-stamp {
+    position: absolute;
+    transform: rotate(14deg);
+    border: 3px double #b3170c;
+    color: #b3170c;
+    font-weight: 900;
+    letter-spacing: 3px;
+    padding: 5px 10px;
+    border-radius: 6px;
+    opacity: 0.85;
+    mix-blend-mode: multiply;
+    white-space: nowrap;
+}
+
+/* ----- 小張通緝令（告示板上） ----- */
+.poster.mini {
+    padding: 18px 10px 12px;
+    cursor: pointer;
+    transform: rotate(var(--rot, 0deg));
+    transition: transform 0.25s;
+}
+.poster.mini:hover,
+.poster.mini:focus-visible { transform: rotate(0deg) scale(1.06); z-index: 2; outline: none; }
+.poster.mini .poster-head { font-size: 1.45rem; margin-top: 2px; }
+.poster.mini .poster-sub { font-size: 0.62rem; margin: 4px 0 8px; }
+.poster.mini .poster-photo { margin: 2px 3px 8px; }
+.poster.mini .poster-name { font-size: 0.95rem; }
+.poster.mini .stars { font-size: 0.72rem; }
+.poster.mini .peek {
+    font-size: 0.65rem;
+    color: #8a5a32;
+    margin-top: 4px;
+    letter-spacing: 1px;
+}
+
+/* ----- 魔王：橫向大張，佔滿整行 ----- */
+.poster.boss {
+    grid-column: 1 / -1;
+    --paper: #e4c999;
+    display: grid;
+    grid-template-columns: minmax(150px, 230px) 1fr;
+    gap: 6px 28px;
+    align-items: center;
+    padding: 26px 32px 22px;
+    text-align: left;
+}
+.poster.boss .poster-photo { grid-row: 1 / span 2; }
+.poster.boss .poster-head { font-size: 2.8rem; }
+.poster.boss .poster-sub { font-size: 0.75rem; display: inline-block; margin: 6px 0 10px; padding: 2px 12px; }
+.poster.boss .poster-name { font-size: 1.8rem; color: #8f1b10; }
+.poster.boss .poster-title { font-size: 0.95rem; margin-bottom: 4px; }
+.poster.boss .poster-danger { font-size: 0.85rem; margin-bottom: 8px; }
+.poster.boss .poster-crime { font-size: 0.92rem; }
+.poster.boss .poster-foot { font-size: 0.8rem; margin-top: 8px; }
+.poster.boss .poster-stamp { top: 22px; right: 26px; font-size: 1.1rem; }
+
+/* ----- 放大檢視（點擊小張後） ----- */
+.bounty-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 2000;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    background: rgba(5, 2, 8, 0.82);
+    backdrop-filter: blur(4px);
+}
+.bounty-modal.open { display: flex; }
+.bounty-modal .close-bounty {
+    position: absolute;
+    top: 14px;
+    right: 20px;
+    background: none;
+    border: none;
+    color: #fff;
+    font-size: 2.4rem;
+    line-height: 1;
+    cursor: pointer;
+}
+.bounty-modal-body { width: min(340px, 100%); }
+.poster.full {
+    width: 100%;
+    max-height: calc(100vh - 40px);
+    overflow-y: auto;
+    padding: 24px 18px 18px;
+    animation: poster-in 0.3s cubic-bezier(0.2, 1.2, 0.4, 1);
+}
+.poster.full .poster-head { font-size: 2.4rem; margin-top: 4px; }
+.poster.full .poster-sub { font-size: 0.75rem; margin: 6px 0 10px; }
+.poster.full .poster-photo { margin: 4px 6px 12px; }
+.poster.full .poster-name { font-size: 1.4rem; }
+.poster.full .poster-title { font-size: 0.88rem; margin-bottom: 6px; }
+.poster.full .poster-danger { font-size: 0.82rem; margin-bottom: 8px; }
+.poster.full .poster-crime { font-size: 0.9rem; }
+.poster.full .poster-foot { font-size: 0.78rem; margin-top: 10px; }
+@keyframes poster-in {
+    from { opacity: 0; transform: scale(0.85) rotate(-4deg); }
+    to   { opacity: 1; transform: none; }
+}
+
+/* 電腦版：一行 8 張，16 隻剛好兩行 */
+#bounty .container { max-width: 1200px; }
+@media (min-width: 1000px) {
+    .bounty-board { grid-template-columns: repeat(8, 1fr); }
+}
+
+/* 手機版：一行 4 張，16 隻剛好四行 */
+@media (max-width: 600px) {
+    .bounty-board { grid-template-columns: repeat(4, 1fr); gap: 14px 7px; padding: 6px 0; }
+    .poster.mini { padding: 12px 4px 7px; }
+    .poster.mini .pin { width: 8px; height: 8px; margin-left: -4px; top: 4px; }
+    .poster.mini .poster-head { font-size: 0.82rem; letter-spacing: 0; }
+    .poster.mini .poster-sub { font-size: 0.42rem; letter-spacing: 0; margin: 3px 0 5px; }
+    .poster.mini .poster-photo { margin: 1px 2px 5px; outline-offset: 2px; }
+    .poster.mini .poster-name { font-size: 0.64rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .poster.mini .stars { font-size: 0.5rem; letter-spacing: 0; }
+    .poster.mini .peek { display: none; }
+    .poster.boss {
+        grid-template-columns: 110px 1fr;
+        gap: 4px 14px;
+        padding: 20px 16px 16px;
+    }
+    .poster.boss .poster-photo { grid-row: auto; }
+    .poster.boss .poster-head { font-size: 1.9rem; }
+    .poster.boss .poster-name { font-size: 1.35rem; }
+    .poster.boss .boss-detail { grid-column: 1 / -1; }
+    .poster.boss .poster-stamp { font-size: 0.8rem; top: 108px; right: auto; left: 12px; padding: 3px 7px; }
+}
+@media (prefers-reduced-motion: reduce) {
+    .poster.mini, .reward-card { transition: none; }
+    .poster.full { animation: none; }
+}
+.poster.boss .boss-detail { grid-column: 2; }
+@media (max-width: 600px) { .poster.boss .boss-detail { grid-column: 1 / -1; } }
+
+/* 冒險報酬：連結、金額與備註 */
+.reward-link {
+    display: inline-block;
+    margin-top: 12px;
+    font-size: 0.9rem;
+    color: var(--light-purple);
+    text-decoration: none;
+    border-bottom: 1px dashed currentColor;
+    transition: color 0.2s;
+}
+.reward-link:hover { color: #fff; }
+.reward-gil { display: inline-block; margin-top: 6px; font-size: 1.15rem; color: #fbbf24; }
+.tier-2 .reward-gil { color: var(--primary-orange); }
+.reward-note { margin-top: 24px; color: #c9b3e6; font-size: 0.95rem; line-height: 1.7; }
+
+/* 錯誤訊息的彈出視窗換成紅色調 */
+.magic-alert-modal[data-type="error"] .alert-title { color: #f87171; }
+.magic-alert-modal[data-type="warn"] .alert-title { color: #fbbf24; }
+
+.reward-footnote {
+    margin-top: 12px;
+    padding-top: 10px;
+    border-top: 1px dashed rgba(251, 191, 36, 0.35);
+    font-size: 0.78rem;
+    line-height: 1.6;
+    color: #d6c7a1;
+    text-align: left;
+}

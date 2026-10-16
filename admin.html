@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>【關主後台】紋章賦予與查詢系統</title>
+    <script src="stamps.js"></script>
+    <style>
+        * { box-sizing: border-box; }
+        body { background: #1a1525; color: #f3e8ff; font-family: sans-serif; display: flex; justify-content: center; padding: 30px 14px; margin: 0; }
+        .admin-panel { background: rgba(0,0,0,0.5); border: 2px solid #ff7300; padding: 26px 20px; border-radius: 15px; text-align: center; width: 100%; max-width: 520px; box-shadow: 0 0 20px rgba(255,115,0,0.2); }
+        h1, h2 { color: #ff7300; margin: 0 0 20px; }
+        h2 { font-size: 1.4rem; color: #a855f7; border-top: 1px dashed #6b21a8; padding-top: 22px; margin-top: 30px; }
+        .form-group { margin-bottom: 18px; text-align: left; }
+        label { display: block; margin-bottom: 10px; font-weight: bold; color: #a855f7; }
+        input { width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #a855f7; background: #0b0510; color: #fff; font-size: 1.1rem; text-transform: uppercase; }
+        input:focus { outline: none; border-color: #ff7300; box-shadow: 0 0 10px rgba(255,115,0,0.4); }
+        button { background: #ff7300; color: #fff; border: none; padding: 15px; width: 100%; border-radius: 8px; font-size: 1.2rem; font-weight: bold; cursor: pointer; transition: 0.3s; margin-bottom: 10px; }
+        button:hover:not(:disabled) { background: #cc5c00; box-shadow: 0 0 15px #ff7300; }
+        button:disabled { opacity: 0.5; cursor: wait; }
+        .btn-check { background: #6b21a8; }
+        .btn-check:hover:not(:disabled) { background: #4c1d95; box-shadow: 0 0 15px #6b21a8; }
+        .status { margin-top: 6px; font-weight: bold; min-height: 1.4em; }
+
+        /* 紋章選擇：圖片按鈕 */
+        .stamp-picker { display: grid; grid-template-columns: repeat(auto-fill, minmax(84px, 1fr)); gap: 8px; }
+        .stamp-opt {
+            background: #0b0510;
+            border: 2px solid #3b1d5e;
+            border-radius: 10px;
+            padding: 6px 4px 6px;
+            margin: 0;
+            font-size: 0.85rem;
+            font-weight: bold;
+            color: #e9dcf7;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 3px;
+            transition: 0.15s;
+        }
+        .stamp-opt:hover:not(:disabled) { background: #1c1030; border-color: #a855f7; box-shadow: none; }
+        .stamp-opt.selected { border-color: #ff7300; background: rgba(255,115,0,0.15); box-shadow: 0 0 10px rgba(255,115,0,0.5); }
+        .stamp-opt img { width: 56px; height: 56px; object-fit: contain; }
+        .stamp-opt .no { font-size: 0.7rem; color: #8b7aa3; font-weight: normal; }
+        .stamp-opt .stage { font-size: 0.68rem; color: #a78bca; font-weight: normal; }
+        .stamp-opt .ph { width: 56px; height: 56px; border-radius: 50%; border: 2px dashed #6b21a8; display: flex; align-items: center; justify-content: center; color: #a855f7; }
+
+        .selected-bar { margin: 14px 0 12px; min-height: 1.4em; color: #fbbf24; font-weight: bold; }
+
+        /* 查詢結果 */
+        .result-box { background: rgba(107,33,168,0.2); border: 1px solid #6b21a8; padding: 15px; border-radius: 8px; text-align: left; margin-top: 15px; display: none; }
+        .result-box p { margin: 5px 0; color: #fff; }
+        .owned { display: grid; grid-template-columns: repeat(auto-fill, minmax(70px, 1fr)); gap: 8px; margin-top: 10px; }
+        .owned-item { text-align: center; font-size: 0.75rem; color: #e9dcf7; opacity: 0.3; }
+        .owned-item.got { opacity: 1; }
+        .owned-item img, .owned-item .ph { width: 48px; height: 48px; object-fit: contain; display: block; margin: 0 auto 2px; }
+        .owned-item .ph { border-radius: 50%; border: 2px dashed #6b21a8; }
+        .legend { font-size: 0.8rem; color: #8b7aa3; margin-top: 8px; }
+    </style>
+</head>
+<body>
+
+    <div class="admin-panel">
+        <h1>🗡️ 紋章賦予系統</h1>
+
+        <div class="form-group">
+            <label for="playerId">玩家魔書編號 (4碼)</label>
+            <input type="text" id="playerId" placeholder="例如: A7K9" maxlength="4" autocomplete="off">
+        </div>
+
+        <div class="form-group">
+            <label>選擇給予的紋章</label>
+            <div class="stamp-picker" id="stampPicker"></div>
+        </div>
+
+        <div class="selected-bar" id="selectedBar"></div>
+        <button id="giveBtn" onclick="giveStamp()">賦予紋章</button>
+        <div class="status" id="statusText"></div>
+
+        <h2>🔍 魔書狀態查詢 (兌換核對)</h2>
+        <div class="form-group">
+            <input type="text" id="checkId" placeholder="輸入玩家編號查詢進度" maxlength="4" autocomplete="off">
+        </div>
+        <button class="btn-check" id="checkBtn" onclick="checkPlayer()">查詢收集進度</button>
+
+        <div class="result-box" id="resultBox">
+            <p><strong>玩家編號：</strong> <span id="resId" style="color:#ff7300;"></span></p>
+            <p><strong>收集進度：</strong> <span id="resCount" style="color:#4ade80;"></span> / 17</p>
+            <div class="owned" id="resList"></div>
+            <div class="legend" id="resNote"></div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = "https://script.google.com/macros/s/AKfycbzhmLK2BTTQQ4hej4SHwhzOgYWhoI5u29c4d6iDeaWyFz97ydRNYbCC32hUnJ129_0Wdw/exec";
+        let selectedStamp = null;
+
+        // 圖片讀不到時，換成虛線圓圈＋編號
+        function imgTag(n) {
+            return `<img src="${stampImageUrl(n)}" alt="" onerror="this.outerHTML='<span class=&quot;ph&quot;>${n}</span>'">`;
+        }
+
+        // ===== 產生紋章選擇按鈕 =====
+        const picker = document.getElementById('stampPicker');
+        for (let i = 1; i <= 17; i++) {
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className = 'stamp-opt';
+            btn.dataset.id = i;
+            btn.innerHTML = `${imgTag(i)}<span>${stampName(i)}</span><span class="stage">${stampStage(i)}</span>`;
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.stamp-opt').forEach(b => b.classList.remove('selected'));
+                btn.classList.add('selected');
+                selectedStamp = i;
+                document.getElementById('selectedBar').textContent = `已選擇：${stampName(i)}（${stampStage(i)}）`;
+            });
+            picker.appendChild(btn);
+        }
+
+        function setStatus(text, color) {
+            const status = document.getElementById('statusText');
+            status.style.color = color;
+            status.textContent = text;
+        }
+
+        // ===== 賦予紋章 =====
+        function giveStamp() {
+            const playerId = document.getElementById('playerId').value.trim().toUpperCase();
+            if (playerId.length !== 4) return setStatus("❌ 請輸入 4 碼編號", "#ef4444");
+            if (!selectedStamp) return setStatus("❌ 請選擇紋章", "#ef4444");
+
+            const stampId = selectedStamp;
+            const btn = document.getElementById('giveBtn');
+            btn.disabled = true;
+            setStatus("⏳ 魔法傳輸中...", "#fbbf24");
+
+            fetch(API_URL, {
+                method: "POST",
+                body: JSON.stringify({ action: 'add_stamp', code: playerId, stampId: stampId })
+            }).then(res => res.json()).then(res => {
+                if (res.status === "success") {
+                    setStatus(`✅ 已賦予 ${playerId}「${stampName(stampId)}」紋章`, "#4ade80");
+                    document.querySelectorAll('.stamp-opt').forEach(b => b.classList.remove('selected'));
+                    selectedStamp = null;
+                    document.getElementById('selectedBar').textContent = '';
+                } else {
+                    setStatus("❌ " + res.message, "#ef4444");
+                }
+            }).catch(() => {
+                setStatus("❌ 連線失敗，請檢查網路", "#ef4444");
+            }).finally(() => { btn.disabled = false; });
+        }
+
+        // ===== 查詢玩家進度 =====
+        function checkPlayer() {
+            const checkId = document.getElementById('checkId').value.trim().toUpperCase();
+            if (checkId.length !== 4) { alert("請輸入 4 碼玩家編號"); return; }
+
+            const resultBox = document.getElementById('resultBox');
+            const list = document.getElementById('resList');
+            const note = document.getElementById('resNote');
+            resultBox.style.display = 'block';
+            document.getElementById('resId').textContent = checkId;
+            document.getElementById('resCount').textContent = "-";
+            list.innerHTML = '';
+            note.textContent = "讀取中...";
+
+            fetch(`${API_URL}?action=get_stamps&code=${encodeURIComponent(checkId)}`)
+                .then(res => res.json())
+                .then(data => {
+                    if (data.status === "success") {
+                        const owned = new Set(data.stamps.map(Number));
+                        document.getElementById('resCount').textContent = owned.size;
+                        let html = '';
+                        for (let i = 1; i <= 17; i++) {
+                            html += `<div class="owned-item${owned.has(i) ? ' got' : ''}">${imgTag(i)}${stampName(i)}</div>`;
+                        }
+                        list.innerHTML = html;
+                        note.textContent = owned.size ? '亮起的是已獲得的紋章，暗的是尚未獲得' : '尚未獲得任何紋章';
+                    } else {
+                        note.textContent = "❌ " + (data.message || "查無此契約碼");
+                    }
+                }).catch(() => {
+                    note.textContent = "❌ 讀取失敗，請重試";
+                });
+        }
+
+        // 輸入框按 Enter
+        document.getElementById('checkId').addEventListener('keydown', e => { if (e.key === 'Enter') checkPlayer(); });
+    </script>
+</body>
+</html>

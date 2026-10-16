@@ -1,0 +1,1112 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>我的禁忌魔書</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@600;900&family=LXGW+WenKai+TC:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --ink: #2b170c;          /* 書頁上的墨水色（深褐黑，像鐵膽墨水） */
+            --ink-line: rgba(43, 23, 12, 0.72);
+            --ink-soft: rgba(43, 23, 12, 0.5);
+            --hand: 'LXGW WenKai TC', 'Kaiti TC', 'DFKai-SB', serif;  /* 手寫楷體 */
+            --rubric: #7a1a12;       /* 標題用的暗紅（古書的朱筆） */
+            --seal: #a3231a;         /* 封蠟紅 */
+            --seal-dark: #5e0f0a;
+            --glow: #ff7300;
+        }
+
+        * { box-sizing: border-box; }
+
+        html, body { height: 100%; }
+
+        body {
+            margin: 0;
+            background: #0b0510;
+            color: #f3e8ff;
+            font-family: 'Noto Serif TC', 'Songti TC', 'PMingLiU', serif;
+            display: flex;
+            flex-direction: column;
+            height: 100dvh;
+            overflow: hidden;
+            padding: env(safe-area-inset-top) 0 env(safe-area-inset-bottom);
+            -webkit-tap-highlight-color: transparent;
+            user-select: none;
+        }
+
+        /* ===== 頂部資訊列 ===== */
+        .info-bar {
+            flex: none;
+            text-align: center;
+            padding: 14px 10px 6px;
+        }
+        .info-label { font-size: 0.8rem; opacity: 0.7; letter-spacing: 3px; }
+        .player-id {
+            font-family: monospace;
+            font-size: 2rem;
+            font-weight: bold;
+            letter-spacing: 8px;
+            color: var(--glow);
+            text-shadow: 0 0 10px var(--glow);
+            margin: 2px 0;
+        }
+        .info-sub { font-size: 0.8rem; opacity: 0.7; }
+        .progress { color: #fbbf24; font-weight: 600; }
+
+        /* ===== 倒數計時 ===== */
+        .timer-box {
+            display: inline-flex; align-items: center; gap: 8px;
+            margin-top: 6px; padding: 4px 14px; border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.15); background: rgba(255, 255, 255, 0.05);
+            font-size: 0.85rem;
+        }
+        .timer-box .clock { font-family: monospace; font-size: 1.25rem; font-weight: bold; letter-spacing: 2px; }
+        .timer-box.idle { color: #a78bca; }
+        .timer-box.run .clock { color: #4ade80; text-shadow: 0 0 8px rgba(74, 222, 128, 0.5); }
+        .timer-box.low { border-color: rgba(251, 191, 36, 0.6); }
+        .timer-box.low .clock { color: #fbbf24; text-shadow: 0 0 8px rgba(251, 191, 36, 0.6); }
+        .timer-box.urgent { border-color: rgba(239, 68, 68, 0.7); animation: pulse 1s infinite; }
+        .timer-box.urgent .clock { color: #ef4444; text-shadow: 0 0 10px rgba(239, 68, 68, 0.7); }
+        .timer-box.over { color: #fca5a5; border-color: #ef4444; background: rgba(127, 29, 29, 0.4); }
+        @keyframes pulse { 50% { box-shadow: 0 0 14px rgba(239, 68, 68, 0.6); } }
+
+        /* 時間到的提示 */
+        .timeup {
+            position: fixed; inset: 0; z-index: 60; display: none;
+            align-items: center; justify-content: center; padding: 24px;
+            background: rgba(10, 4, 14, 0.85);
+        }
+        .timeup.show { display: flex; }
+        .timeup-box {
+            max-width: 360px; text-align: center; padding: 28px 24px; border-radius: 14px;
+            border: 2px solid #ef4444; background: #1a0b12; box-shadow: 0 0 30px rgba(239, 68, 68, 0.35);
+        }
+        .timeup-box h2 { margin: 0 0 10px; color: #ef4444; letter-spacing: 4px; }
+        .timeup-box p { margin: 0 0 18px; line-height: 1.8; color: #f3e8ff; }
+        .timeup-box button {
+            padding: 10px 28px; border-radius: 20px; border: none; cursor: pointer;
+            background: #ef4444; color: #fff; font-weight: bold; font-size: 1rem;
+        }
+
+        /* ===== 書本舞台 ===== */
+        .book-container {
+            flex: 1;
+            position: relative;
+            overflow: hidden;
+            cursor: pointer;
+            min-height: 0;
+        }
+
+        .page {
+            position: absolute;
+            inset: 0;
+            visibility: hidden;
+            opacity: 0;
+            transition: opacity 0.35s ease, visibility 0.35s;
+        }
+        .page.active { visibility: visible; opacity: 1; }
+
+        /* stage = 跟圖片一模一樣大小的框，所有文字都用「圖片的百分比」來定位 */
+        .stage {
+            position: absolute;
+            top: 0;
+            left: 0;
+            container-type: size;
+            transition: transform 0.45s cubic-bezier(0.4, 0, 0.2, 1);
+            will-change: transform;
+        }
+        .page-img {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            display: block;
+            pointer-events: none;
+            filter: drop-shadow(0 20px 30px rgba(0, 0, 0, 0.7));
+        }
+
+        /* 左右兩頁的可書寫區域（數值由 JS 的 PAGE_ZONES 寫入） */
+        .zone {
+            position: absolute;
+            display: flex;
+            flex-direction: column;
+            color: var(--ink);
+            mix-blend-mode: multiply;   /* ⭐️ 讓墨水「吃進」紙張，污漬會透過墨跡，不再像貼上去的 */
+        }
+        /* 墨水微微暈開的感覺 */
+        .zone .page-title,
+        .zone .coord-name,
+        .zone .num { text-shadow: 0 0 0.12cqw currentColor; }
+        .zone-left  { left: var(--L-x); top: var(--L-y); width: var(--L-w); height: var(--L-h); }
+        .zone-right { left: var(--R-x); top: var(--R-y); width: var(--R-w); height: var(--R-h); }
+
+        /* 校正模式：網址加上 &debug=1 會顯示紅框 */
+        body.debug .zone { outline: 2px dashed red; background: rgba(255, 0, 0, 0.08); }
+
+        /* ===== 頁面標題（朱筆＋墨線） ===== */
+        .page-title {
+            text-align: center;
+            color: var(--rubric);
+            font-weight: 900;
+            font-size: 2.3cqw;
+            letter-spacing: 0.35cqw;
+            padding-bottom: 0.9cqw;
+            margin-bottom: 1.8cqw;
+            position: relative;
+        }
+        /* 標題下方：細-粗-細的手繪分隔線，中間一顆菱形 */
+        .page-title::after {
+            content: '';
+            position: absolute;
+            left: 8%;
+            right: 8%;
+            bottom: -0.4cqw;
+            height: 1.2cqw;
+            background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 12' preserveAspectRatio='none'%3E%3Cpath d='M2 6 Q50 4.6 92 6' stroke='%237a1a12' stroke-width='1.1' fill='none' stroke-linecap='round'/%3E%3Cpath d='M108 6 Q150 7.4 198 6' stroke='%237a1a12' stroke-width='1.1' fill='none' stroke-linecap='round'/%3E%3Cpath d='M100 1 L105 6 L100 11 L95 6 Z' fill='%237a1a12'/%3E%3C/svg%3E") center / 100% 100% no-repeat;
+        }
+
+        /* ===== 紋章圖鑑 ===== */
+        .stamp-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1.6cqw 1.4cqw;
+            padding: 0 1cqw;
+        }
+
+        .stamp-slot {
+            position: relative;
+            aspect-ratio: 1;
+            border-radius: 50%;
+            /* 外圈：略帶不規則的手繪墨線 (SVG) */
+            background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpath d='M50 3.5 C76 3 97 23 96.5 50 C96 77 76 97 49 96.5 C23 96 3.2 76 3.6 49 C4 24 25 4 50 3.5 Z' fill='none' stroke='%232b170c' stroke-opacity='.75' stroke-width='1.6'/%3E%3Ccircle cx='50' cy='50' r='38' fill='none' stroke='%232b170c' stroke-opacity='.45' stroke-width='1' stroke-dasharray='1.5 3.2' stroke-linecap='round'/%3E%3C/svg%3E") center / 100% 100% no-repeat;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: var(--hand);
+            font-size: 2.6cqw;
+            font-weight: 700;
+            color: var(--ink-soft);
+        }
+
+        /* ===== 探索座標 ===== */
+        .coord-list {
+            display: flex;
+            flex-direction: column;
+            gap: 2.2cqw;
+            padding: 0.6cqw 0.5cqw 0;
+        }
+        /* 座標頁下方的淡墨魔法陣，填補空白 */
+        .coord-list::after {
+            display: none;
+            content: '';
+            align-self: center;
+            width: 62%;
+            aspect-ratio: 1;
+            margin-top: auto;
+            opacity: 0.16;
+            background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200' fill='none' stroke='%232b170c' stroke-width='1.4'%3E%3Ccircle cx='100' cy='100' r='94'/%3E%3Ccircle cx='100' cy='100' r='86' stroke-dasharray='2 5'/%3E%3Ccircle cx='100' cy='100' r='58'/%3E%3Crect x='41' y='41' width='118' height='118'/%3E%3Crect x='41' y='41' width='118' height='118' transform='rotate(45 100 100)'/%3E%3Ccircle cx='100' cy='100' r='16'/%3E%3Cellipse cx='100' cy='104' rx='7' ry='6' fill='%232b170c'/%3E%3Ccircle cx='91' cy='93' r='3' fill='%232b170c'/%3E%3Ccircle cx='97' cy='89' r='3' fill='%232b170c'/%3E%3Ccircle cx='103' cy='89' r='3' fill='%232b170c'/%3E%3Ccircle cx='109' cy='93' r='3' fill='%232b170c'/%3E%3C/svg%3E") center / contain no-repeat;
+        }
+        .coord-list { height: 100%; }
+        .coord-item { display: flex; flex-direction: column; gap: 0.3cqw; }
+        .coord-row {
+            display: flex;
+            align-items: center;
+            gap: 0.8cqw;
+        }
+        /* 名稱下方的小註解 */
+        .coord-note {
+            font-family: var(--hand);
+            font-size: 1.25cqw;
+            color: var(--ink-soft);
+            padding-left: 2.2cqw;
+            line-height: 1.5;
+        }
+        /* 魔王城：朱紅加強 */
+        .coord-item.boss .coord-name { color: var(--rubric); }
+        .coord-item.boss .coord-name::before { content: '♛'; }
+        /* 神出鬼沒的 ？ */
+        .coord-item.mystery .coord-name { letter-spacing: 0.4cqw; }
+        .coord-item.mystery .coord-name::before { content: '☽'; letter-spacing: 0; }
+        .coord-name {
+            font-family: var(--hand);
+            font-size: 2cqw;
+            font-weight: 700;
+            white-space: nowrap;
+        }
+        .coord-name::before {
+            content: '✦';
+            color: var(--rubric);
+            margin-right: 0.6cqw;
+            font-size: 0.85em;
+        }
+        /* 名稱和印章之間的點線（像目錄的引導線） */
+        .coord-leader {
+            flex: 1;
+            min-width: 1cqw;
+            border-bottom: 0.2cqw dotted var(--ink-line);
+            transform: translateY(0.4cqw);
+        }
+        .coord-stamps { display: flex; gap: 1cqw; padding-left: 2.2cqw; margin-top: 0.4cqw; }
+        .coord-slot {
+            position: relative;
+            width: 6.2cqw;
+            height: 6.2cqw;
+            border-radius: 50%;
+            background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpath d='M50 3.5 C76 3 97 23 96.5 50 C96 77 76 97 49 96.5 C23 96 3.2 76 3.6 49 C4 24 25 4 50 3.5 Z' fill='none' stroke='%232b170c' stroke-opacity='.75' stroke-width='2.2'/%3E%3Ccircle cx='50' cy='50' r='37' fill='none' stroke='%232b170c' stroke-opacity='.45' stroke-width='1.4' stroke-dasharray='1.5 3.5' stroke-linecap='round'/%3E%3C/svg%3E") center / 100% 100% no-repeat;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: var(--hand);
+            font-size: 2cqw;
+            font-weight: 700;
+            color: var(--ink-soft);
+        }
+
+        /* ===== 已取得：封蠟印章 ===== */
+        .stamp-slot.stamp-active,
+        .coord-slot.stamp-active {
+            border: none;
+            mix-blend-mode: normal;
+            color: rgba(255, 230, 200, 0.85);
+            background:
+                radial-gradient(circle at 32% 28%, rgba(255, 255, 255, 0.35), transparent 35%),
+                radial-gradient(circle, var(--seal) 0%, var(--seal) 55%, var(--seal-dark) 100%);
+            box-shadow:
+                0 0.3cqw 0.6cqw rgba(40, 0, 0, 0.45),
+                inset 0 0 0 0.35cqw rgba(0, 0, 0, 0.18);
+            transform: rotate(var(--tilt, -6deg));
+            animation: seal-press 0.5s cubic-bezier(0.2, 1.4, 0.4, 1) both;
+        }
+        .stamp-slot.stamp-active::before {
+            content: '';
+            position: absolute;
+            border-radius: 50%;
+            inset: 14%;
+            border: 0.15cqw solid rgba(255, 220, 190, 0.45);
+        }
+        .stamp-slot.stamp-active::after {
+            content: '🐾';
+            position: absolute;
+            font-size: 3cqw;
+            filter: grayscale(1) brightness(2.2) opacity(0.8);
+        }
+        .stamp-slot.stamp-active .num { position: absolute; bottom: 16%; font-size: 1.1cqw; }
+        .coord-slot.stamp-active .num { display: none; }
+        .coord-slot.stamp-active::after {
+            content: '🐾';
+            font-size: 2.6cqw;
+            filter: grayscale(1) brightness(2.2) opacity(0.8);
+        }
+
+        /* ===== 有紋章圖片時：直接顯示圖片，取代紅色封蠟 ===== */
+        .stamp-slot.stamp-active.has-img,
+        .coord-slot.stamp-active.has-img {
+            background: none;
+            box-shadow: none;
+        }
+        .stamp-active.has-img::before,
+        .stamp-active.has-img::after,
+        .stamp-active.has-img .num { display: none; }
+        .stamp-img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            display: block;
+            pointer-events: none;
+        }
+
+        @keyframes seal-press {
+            0%   { transform: scale(1.8) rotate(0deg); opacity: 0; }
+            100% { transform: scale(1) rotate(var(--tilt, -6deg)); opacity: 1; }
+        }
+
+        /* ===== 紋章上的肉球足跡 ===== */
+        .paw-mark {
+            position: absolute;
+            right: -8%;
+            bottom: -8%;
+            width: 46%;
+            height: 46%;
+            color: var(--ink);
+            transform: rotate(-14deg);
+            z-index: 2;
+            pointer-events: none;
+            opacity: 0.88;
+        }
+        .paw-mark svg, .paw-cell svg { width: 100%; height: 100%; display: block; }
+
+        /* ===== 解讀之頁：封印狀態 ===== */
+        body:not(.cipher-unlocked) .cipher-body { display: none; }
+        body.cipher-unlocked .sealed { display: none; }
+        .sealed {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 1.6cqw;
+            text-align: center;
+            font-family: var(--hand);
+            color: var(--ink-soft);
+        }
+        .sealed-sigil {
+            width: 55%;
+            aspect-ratio: 1;
+            opacity: 0.35;
+            background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200' fill='none' stroke='%232b170c' stroke-width='1.4'%3E%3Ccircle cx='100' cy='100' r='94'/%3E%3Ccircle cx='100' cy='100' r='86' stroke-dasharray='2 5'/%3E%3Ccircle cx='100' cy='100' r='58'/%3E%3Crect x='41' y='41' width='118' height='118'/%3E%3Crect x='41' y='41' width='118' height='118' transform='rotate(45 100 100)'/%3E%3Ccircle cx='100' cy='100' r='16'/%3E%3Cellipse cx='100' cy='104' rx='7' ry='6' fill='%232b170c'/%3E%3Ccircle cx='91' cy='93' r='3' fill='%232b170c'/%3E%3Ccircle cx='97' cy='89' r='3' fill='%232b170c'/%3E%3Ccircle cx='103' cy='89' r='3' fill='%232b170c'/%3E%3Ccircle cx='109' cy='93' r='3' fill='%232b170c'/%3E%3C/svg%3E") center / contain no-repeat;
+        }
+        .sealed-title { font-size: 2.2cqw; font-weight: 700; color: var(--rubric); }
+        .sealed-text { font-size: 1.5cqw; line-height: 1.7; }
+
+        /* ===== 解讀之頁：內文 ===== */
+        .cipher-body { display: flex; flex-direction: column; flex: 1; min-height: 0; }
+        .lore {
+            font-family: var(--hand);
+            font-size: 1.55cqw;
+            line-height: 1.75;
+            text-align: center;
+            margin: 0 0 1.4cqw;
+        }
+        .lore em { font-style: normal; color: var(--rubric); font-weight: 700; }
+
+        /* 肉球對照表 */
+        .paw-table {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1.1cqw 0.6cqw;
+            padding: 0 0.4cqw;
+        }
+        .paw-cell { display: flex; align-items: center; gap: 0.5cqw; }
+        .paw-cell .pw { width: 4cqw; height: 4cqw; flex: none; color: var(--ink); }
+        .paw-cell .ch {
+            font-family: 'Courier New', monospace;
+            font-size: 1.9cqw;
+            font-weight: 700;
+            min-width: 2cqw;
+        }
+
+        /* 推移之輪 */
+        .wheel-wrap { display: flex; flex-direction: column; align-items: center; gap: 1.2cqw; }
+        .wheel { width: 25cqw; height: 25cqw; }
+        .wheel text { font-family: 'Courier New', monospace; font-weight: 700; }
+        .wheel .inner { transition: transform 0.35s ease; transform-origin: 100px 100px; }
+        .wheel-ctrl { display: flex; align-items: center; gap: 1.6cqw; }
+        .wheel-btn {
+            width: 4.4cqw;
+            height: 4.4cqw;
+            border-radius: 50%;
+            border: 0.2cqw solid var(--ink-line);
+            background: transparent;
+            color: var(--ink);
+            font-size: 1.8cqw;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0;
+        }
+        .wheel-btn:active { background: rgba(43, 23, 12, 0.12); }
+        .wheel-num { font-family: var(--hand); font-size: 2cqw; font-weight: 700; min-width: 8cqw; text-align: center; }
+        .wheel-legend { font-family: var(--hand); font-size: 1.3cqw; color: var(--ink-soft); }
+
+        /* 鍵盤圖 */
+        .kbd { display: flex; flex-direction: column; gap: 0.45cqw; align-items: flex-start; margin: 0 auto 1.6cqw; }
+        .kbd-row { display: flex; gap: 0.35cqw; }
+        .kbd-key {
+            width: 2.05cqw;
+            height: 2.3cqw;
+            border: 0.13cqw solid var(--ink-line);
+            border-radius: 0.35cqw;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Courier New', monospace;
+            font-size: 1.25cqw;
+            font-weight: 700;
+        }
+
+        /* 謎之低語（計時提示） */
+        .whisper {
+            margin-top: auto;
+            border-top: 0.15cqw dotted var(--ink-line);
+            padding-top: 1.2cqw;
+            font-family: var(--hand);
+            font-size: 1.4cqw;
+            line-height: 1.7;
+        }
+        .whisper-title { color: var(--rubric); font-weight: 700; margin-bottom: 0.5cqw; }
+        .whisper .hint { margin: 0.4cqw 0; animation: ink-in 1.2s ease both; }
+        .whisper .waiting { color: var(--ink-soft); }
+        @keyframes ink-in { from { opacity: 0; filter: blur(0.3cqw); } to { opacity: 1; filter: none; } }
+
+        /* ===== 底部翻頁提示 ===== */
+        .nav-bar {
+            flex: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 14px;
+            padding: 8px 10px 14px;
+            font-size: 0.85rem;
+            color: rgba(243, 232, 255, 0.7);
+        }
+        .dots { display: flex; gap: 6px; }
+        .dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.2);
+            transition: background 0.3s;
+        }
+        .dot.on { background: var(--glow); box-shadow: 0 0 6px var(--glow); }
+        .hint-cover { color: #fff; animation: blink 2s infinite; }
+        @keyframes blink { 50% { opacity: 0.35; } }
+
+        /* 翻不動時的小晃動 */
+        .book-container.nudge .page.active { animation: nudge 0.3s ease; }
+        @keyframes nudge {
+            25% { transform: translateX(-6px); }
+            75% { transform: translateX(4px); }
+        }
+
+        /* ===== 驗證狀態：確認契約碼前先不顯示書本 ===== */
+        body:not(.verified) .book-container,
+        body:not(.verified) .nav-bar,
+        body:not(.verified) .info-sub,
+        body:not(.verified) .timer-box { visibility: hidden; }
+
+        .gate {
+            position: fixed;
+            inset: 0;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 18px;
+            padding: 24px;
+            text-align: center;
+            z-index: 50;
+        }
+        body.verifying .gate-loading,
+        body.invalid .gate-invalid { display: flex; }
+
+        .gate-loading { color: rgba(243, 232, 255, 0.75); letter-spacing: 3px; }
+        .gate-loading .rune {
+            width: 46px;
+            height: 46px;
+            border-radius: 50%;
+            border: 2px solid rgba(255, 115, 0, 0.25);
+            border-top-color: var(--glow);
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .gate-invalid h2 {
+            margin: 0;
+            color: var(--glow);
+            font-size: 1.6rem;
+            letter-spacing: 4px;
+            text-shadow: 0 0 12px rgba(255, 115, 0, 0.6);
+        }
+        .gate-invalid p { margin: 0; line-height: 1.9; color: #e9dcf7; max-width: 26em; }
+        .gate-invalid .bad-code { color: var(--glow); font-family: monospace; font-size: 1.15em; letter-spacing: 3px; }
+        .gate-invalid a {
+            margin-top: 6px;
+            padding: 12px 28px;
+            border-radius: 30px;
+            background: var(--glow);
+            color: #fff;
+            font-weight: bold;
+            text-decoration: none;
+            box-shadow: 0 0 15px rgba(255, 115, 0, 0.5);
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .gate-loading .rune { animation-duration: 3s; }
+            .stage, .page { transition: none; }
+            .stamp-active { animation: none !important; }
+            .hint-cover { animation: none; }
+        }
+    </style>
+</head>
+<body class="verifying">
+
+    <!-- 驗證中 -->
+    <div class="gate gate-loading">
+        <div class="rune"></div>
+        <div>正在喚醒魔書……</div>
+    </div>
+
+    <!-- 契約碼不存在 -->
+    <div class="gate gate-invalid">
+        <h2>魔書沒有回應</h2>
+        <p>契約碼 <span class="bad-code" id="badCode"></span> 沒有對應的魔書。<br>請確認關主給你的 4 碼契約碼，再重新輸入一次。</p>
+        <a href="index.html">重新輸入契約碼</a>
+    </div>
+
+    <div class="info-bar">
+        <div class="info-label">魔書契約碼</div>
+        <div class="player-id" id="displayId">----</div>
+        <div class="info-sub">請將此編號出示給關主 ｜ 已封印 <span class="progress" id="progress">0</span> / 17</div>
+        <div class="timer-box idle" id="timerBox"><span id="timerLabel">⏳ 等待關主開始計時</span><span class="clock" id="timerClock"></span></div>
+    </div>
+
+    <!-- 時間到 -->
+    <div class="timeup" id="timeup">
+        <div class="timeup-box">
+            <h2>⏰ 時間到</h2>
+            <p>45 分鐘的冒險結束了！<br>請帶著魔書回到<strong>起點（22 號）</strong><br>找關主結算報酬。</p>
+            <button id="timeupBtn">知道了</button>
+        </div>
+    </div>
+
+    <div class="book-container" id="bookContainer">
+
+        <!-- 頁面 0：封面（不放文字，讓書封圖本身說話） -->
+        <div class="page" data-kind="cover">
+            <div class="stage">
+                <img class="page-img" src="image/書封.png" alt="禁忌魔書封面">
+            </div>
+        </div>
+
+        <!-- 頁面 1：紋章圖鑑 -->
+        <div class="page" data-kind="spread">
+            <div class="stage">
+                <img class="page-img" src="image/內頁.png" alt="">
+                <div class="zone zone-left">
+                    <div class="page-title">紋章圖鑑・上</div>
+                    <div class="stamp-grid" id="index-left"></div>
+                </div>
+                <div class="zone zone-right">
+                    <div class="page-title">紋章圖鑑・下</div>
+                    <div class="stamp-grid" id="index-right"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 頁面 2：探索座標 I / II -->
+        <div class="page" data-kind="spread">
+            <div class="stage">
+                <img class="page-img" src="image/內頁.png" alt="">
+                <div class="zone zone-left">
+                    <div class="page-title">探索座標 I</div>
+                    <div class="coord-list" data-coords="第零關:1,2,3,4:22 號・起點（聽完說明自動獲得）|第一關:5:23 號|第二關:6:19 號"></div>
+                </div>
+                <div class="zone zone-right">
+                    <div class="page-title">探索座標 II</div>
+                    <div class="coord-list" data-coords="第三關:7:海霧沙灘（海邊）|第四關:8,9:18 號|第五關:10:13 號"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 頁面 3：探索座標 III / IV -->
+        <div class="page" data-kind="spread">
+            <div class="stage">
+                <img class="page-img" src="image/內頁.png" alt="">
+                <div class="zone zone-left">
+                    <div class="page-title">探索座標 III</div>
+                    <div class="coord-list" data-coords="第六關:11:16 號|第七關:12,13:27 號|第八關:14:28 號"></div>
+                </div>
+                <div class="zone zone-right">
+                    <div class="page-title">探索座標 IV</div>
+                    <div class="coord-list" data-coords="？？？:15:行蹤不明，偶遇即可挑戰:mystery|魔王城:16,17:30 號・集齊 15 枚紋章解鎖:boss"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 頁面 4：解讀之頁 I / II（肉球對照表） -->
+        <div class="page" data-kind="spread">
+            <div class="stage">
+                <img class="page-img" src="image/內頁.png" alt="">
+                <div class="zone zone-left">
+                    <div class="page-title">解讀之頁 I</div>
+                    <div class="sealed">
+                        <div class="sealed-sigil"></div>
+                        <div class="sealed-title">此頁已被封印</div>
+                        <div class="sealed-text">集齊十五枚紋章後解封<br>（目前 <span class="seal-count">0</span> / 15）</div>
+                    </div>
+                    <div class="cipher-body">
+                        <p class="lore">每一枚紋章上，都留著<em>惡魔貓的足跡</em>。<br>足跡所代表的文字，記載於此。</p>
+                        <div class="paw-table" id="pawTableLeft"></div>
+                    </div>
+                </div>
+                <div class="zone zone-right">
+                    <div class="page-title">解讀之頁 II</div>
+                    <div class="sealed">
+                        <div class="sealed-sigil"></div>
+                        <div class="sealed-title">此頁已被封印</div>
+                        <div class="sealed-text">集齊十五枚紋章後解封<br>（目前 <span class="seal-count">0</span> / 15）</div>
+                    </div>
+                    <div class="cipher-body">
+                        <div class="paw-table" id="pawTableRight"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 頁面 5：推移之輪 / 墜落的文字 -->
+        <div class="page" data-kind="spread">
+            <div class="stage">
+                <img class="page-img" src="image/內頁.png" alt="">
+                <div class="zone zone-left">
+                    <div class="page-title">推移之輪</div>
+                    <div class="sealed">
+                        <div class="sealed-sigil"></div>
+                        <div class="sealed-title">此頁已被封印</div>
+                        <div class="sealed-text">集齊十五枚紋章後解封<br>（目前 <span class="seal-count">0</span> / 15）</div>
+                    </div>
+                    <div class="cipher-body">
+                        <p class="lore">足跡化成的文字，仍被推移所扭曲。<br>推移的步數……<br>那位<em>神出鬼沒的旅人</em>曾悄悄告訴過你。</p>
+                        <div class="wheel-wrap">
+                            <svg class="wheel" id="wheel" viewBox="0 0 200 200"></svg>
+                            <div class="wheel-ctrl">
+                                <button class="wheel-btn" type="button" data-step="-1" aria-label="推移減一">◀</button>
+                                <div class="wheel-num">推移 <span id="wheelNum">0</span></div>
+                                <button class="wheel-btn" type="button" data-step="1" aria-label="推移加一">▶</button>
+                            </div>
+                            <div class="wheel-legend">外圈的文字 → 對應內圈的文字</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="zone zone-right">
+                    <div class="page-title">墜落的文字</div>
+                    <div class="sealed">
+                        <div class="sealed-sigil"></div>
+                        <div class="sealed-title">此頁已被封印</div>
+                        <div class="sealed-text">集齊十五枚紋章後解封<br>（目前 <span class="seal-count">0</span> / 15）</div>
+                    </div>
+                    <div class="cipher-body">
+                        <p class="lore">即使撥正了推移，<br>文字仍<em>墜落了一階</em>。<br>將它們拉回天上吧。</p>
+                        <div class="kbd" id="kbd"></div>
+                        <p class="lore">解開的話語，就是通往魔王的咒文。<br>向守在魔王城門前的騎士，大聲說出吧！</p>
+                        <div class="whisper">
+                            <div class="whisper-title">❖ 謎之低語</div>
+                            <div id="whispers"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="nav-bar">
+        <div class="dots" id="dots"></div>
+        <div id="navHint"></div>
+    </div>
+
+    <script src="stamps.js"></script>
+    <script>
+        // =====================================================
+        // ⭐️ 校正區：內頁圖片上「左頁 / 右頁可書寫區域」的位置
+        //    數值是「佔整張 內頁.png 的比例」(0 ~ 1)
+        //    x = 左邊界, y = 上邊界, w = 寬, h = 高
+        //    網址加上 &debug=1 會顯示紅框，方便微調
+        // =====================================================
+        const PAGE_ZONES = {
+            left:  { x: 0.160, y: 0.085, w: 0.315, h: 0.80 },
+            right: { x: 0.535, y: 0.085, w: 0.320, h: 0.80 }
+        };
+        // 手機直式時，每次只放大顯示一頁；這是「一整頁紙張(含邊緣)」在圖上的範圍
+        const PAPER_CROP = {
+            left:  { x0: 0.130, x1: 0.505, y0: 0.03, y1: 0.96 },
+            right: { x0: 0.505, x1: 0.895, y0: 0.03, y1: 0.96 }
+        };
+        const TOTAL_STAMPS = 17;
+
+        // =====================================================
+        // ⭐️ 解謎設定
+        // =====================================================
+        // 紋章 1~14 上的足跡（肉球密碼的密文，依紋章編號排列）
+        // 原文 HAPPY HALLOWEEN → 鍵盤下推一行 → 凱薩 +17 → EQ;;Y EQ..CJUU6
+        const PAW_CIPHER = 'EQ;;YEQ..CJUU6';
+        const UNLOCK_AT = 15;   // 集齊幾枚紋章解封解讀之頁
+        // 謎之低語：解封後經過幾分鐘浮現
+        const WHISPERS = [
+            { after: 8,  text: '解讀的順序：足跡 → 推移之輪 → 墜落的文字。' },
+            { after: 15, text: '旅人說的數字是「十七」。而墜落到最深處的文字，會從天頂重新出現。' }
+        ];
+
+        // 肉球對照表會出現的字元（大部分是干擾項）
+        const TABLE_CHARS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789;.,/\'-'.split('');
+
+        // 產生固定的「字元 → 肉球」對應：4 顆腳趾(塗黑/空心) × 掌心 3 種樣式
+        const PAW_MAP = (() => {
+            const codes = [];
+            for (let pad = 0; pad < 3; pad++) {
+                for (let toes = 0; toes < 16; toes++) {
+                    if (!(toes === 0 && pad === 1)) codes.push({ toes, pad });
+                }
+            }
+            let seed = 1031;   // 固定種子 → 每次打開都是同一張表
+            const rand = () => ((seed = (seed * 16807) % 2147483647) / 2147483647);
+            for (let i = codes.length - 1; i > 0; i--) {
+                const j = Math.floor(rand() * (i + 1));
+                [codes[i], codes[j]] = [codes[j], codes[i]];
+            }
+            const map = {};
+            TABLE_CHARS.forEach((ch, i) => { map[ch] = codes[i]; });
+            return map;
+        })();
+
+        function pawSVG(ch) {
+            const { toes, pad } = PAW_MAP[ch];
+            const toePos = [[20, 42], [38, 22], [62, 22], [80, 42]];
+            let svg = '<svg viewBox="0 0 100 100" aria-hidden="true">';
+            toePos.forEach(([x, y], i) => {
+                const filled = toes & (1 << i);
+                svg += `<ellipse cx="${x}" cy="${y}" rx="11" ry="12.5" fill="${filled ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="5"/>`;
+            });
+            svg += `<path d="M50 50 C66 50 76 62 76 72 C76 84 66 86 58 83 C54 82 46 82 42 83 C34 86 24 84 24 72 C24 62 34 50 50 50 Z" fill="${pad === 0 ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="5"/>`;
+            if (pad === 2) svg += '<circle cx="50" cy="70" r="6" fill="currentColor"/>';
+            return svg + '</svg>';
+        }
+
+        // 紋章圖片的位置設定在 stamps.js；找不到圖片時會自動改用紅色封蠟
+        const STAMP_IMAGE = n => stampImageUrl(n);
+
+        function activateSlot(slot, n) {
+            if (slot.classList.contains('stamp-active')) return;
+            slot.classList.add('stamp-active');
+            const img = new Image();
+            img.className = 'stamp-img';
+            img.alt = `第 ${n} 號紋章`;
+            img.onload = () => { slot.classList.add('has-img'); slot.appendChild(img); };
+            img.src = STAMP_IMAGE(n);
+
+            // 紋章圖鑑頁的 1~14 號，蓋上惡魔貓的足跡
+            if (slot.classList.contains('stamp-slot') && n <= PAW_CIPHER.length) {
+                const paw = document.createElement('div');
+                paw.className = 'paw-mark';
+                paw.innerHTML = pawSVG(PAW_CIPHER[n - 1]);
+                slot.appendChild(paw);
+            }
+        }
+
+        // ===== 肉球對照表 =====
+        TABLE_CHARS.forEach((ch, i) => {
+            const cell = document.createElement('div');
+            cell.className = 'paw-cell';
+            cell.innerHTML = `<span class="pw">${pawSVG(ch)}</span><span class="ch"></span>`;
+            cell.querySelector('.ch').textContent = ch;
+            document.getElementById(i < 20 ? 'pawTableLeft' : 'pawTableRight').appendChild(cell);
+        });
+
+        // ===== 推移之輪 =====
+        (() => {
+            const wheel = document.getElementById('wheel');
+            const A = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+            const ring = (r, size) => A.split('').map((ch, i) => {
+                const deg = i * 360 / 26;
+                return `<text x="100" y="${100 - r}" font-size="${size}" text-anchor="middle" dominant-baseline="central" fill="currentColor" transform="rotate(${deg} 100 100)">${ch}</text>`;
+            }).join('');
+            wheel.innerHTML = `
+                <g fill="none" stroke="currentColor">
+                    <circle cx="100" cy="100" r="97" stroke-width="1.6"/>
+                    <circle cx="100" cy="100" r="74" stroke-width="1.2"/>
+                    <circle cx="100" cy="100" r="50" stroke-width="1" stroke-dasharray="2 4"/>
+                </g>
+                ${ring(86, 13)}
+                <g class="inner" id="wheelInner">${ring(62, 12)}</g>
+                <path d="M100 23 L96.5 27.5 L103.5 27.5 Z" fill="#7a1a12"/>`;
+            wheel.style.color = 'var(--ink)';
+            let shift = 0;
+            document.querySelectorAll('.wheel-btn').forEach(btn => {
+                btn.addEventListener('click', e => {
+                    e.stopPropagation();   // 按輪子時不要翻頁
+                    shift = (shift + Number(btn.dataset.step) + 26) % 26;
+                    document.getElementById('wheelNum').textContent = shift;
+                    document.getElementById('wheelInner').style.transform = `rotate(${shift * 360 / 26}deg)`;
+                });
+            });
+        })();
+
+        // ===== 鍵盤圖 =====
+        (() => {
+            const rows = ['1234567890-=', 'QWERTYUIOP[]\\', "ASDFGHJKL;'", 'ZXCVBNM,./'];
+            const offsets = [0, 1.2, 1.8, 2.4];
+            document.getElementById('kbd').innerHTML = rows.map((row, r) =>
+                `<div class="kbd-row" style="margin-left:${offsets[r]}cqw">` +
+                row.split('').map(k => `<span class="kbd-key">${k.replace('<', '&lt;')}</span>`).join('') +
+                '</div>').join('');
+        })();
+
+        // ===== 解封與謎之低語 =====
+        const unlockKey = () => 'sealhunter_unlock_' + playerId;
+
+        function unlockCipher() {
+            if (document.body.classList.contains('cipher-unlocked')) return;
+            document.body.classList.add('cipher-unlocked');
+            try {
+                if (!localStorage.getItem(unlockKey())) localStorage.setItem(unlockKey(), Date.now());
+            } catch (e) {}
+            updateWhispers();
+        }
+
+        function updateWhispers() {
+            if (!document.body.classList.contains('cipher-unlocked')) return;
+            let start = Date.now();
+            try { start = Number(localStorage.getItem(unlockKey())) || start; } catch (e) {}
+            const mins = (Date.now() - start) / 60000;
+            const shown = WHISPERS.filter(w => mins >= w.after);
+            const box = document.getElementById('whispers');
+            if (box.dataset.count === String(shown.length)) return;
+            box.dataset.count = shown.length;
+            box.innerHTML = shown.length
+                ? shown.map(w => `<div class="hint">${w.text}</div>`).join('')
+                : '<div class="waiting">若迷失了方向，靜待片刻，魔書會再次低語……</div>';
+        }
+        setInterval(updateWhispers, 10000);
+
+        // ===== 玩家編號 =====
+        const urlParams = new URLSearchParams(window.location.search);
+        const playerId = (urlParams.get('id') || '').toUpperCase();
+        if (urlParams.get('debug') === '1') document.body.classList.add('debug');
+
+        document.getElementById('displayId').textContent = playerId || '----';
+
+        // 把校正數值寫進 CSS 變數
+        const rootStyle = document.documentElement.style;
+        for (const [side, key] of [['left', 'L'], ['right', 'R']]) {
+            const z = PAGE_ZONES[side];
+            rootStyle.setProperty(`--${key}-x`, z.x * 100 + '%');
+            rootStyle.setProperty(`--${key}-y`, z.y * 100 + '%');
+            rootStyle.setProperty(`--${key}-w`, z.w * 100 + '%');
+            rootStyle.setProperty(`--${key}-h`, z.h * 100 + '%');
+        }
+
+        // 每個印章有一點隨機傾斜，像真的蓋上去
+        const tilt = n => ((n * 37) % 15) - 9 + 'deg';
+
+        // ===== 產生紋章圖鑑格子 =====
+        const gridLeft = document.getElementById('index-left');
+        const gridRight = document.getElementById('index-right');
+        for (let i = 1; i <= TOTAL_STAMPS; i++) {
+            const slot = document.createElement('div');
+            slot.className = 'stamp-slot stamp-id-' + i;
+            slot.style.setProperty('--tilt', tilt(i));
+            slot.innerHTML = `<span class="num">${i}</span>`;
+            (i <= 9 ? gridLeft : gridRight).appendChild(slot);
+        }
+
+        // ===== 產生探索座標清單 =====
+        // 格式：名稱:印章,印章:註解(可省略):樣式(boss / mystery，可省略)，每個關卡用 | 分隔
+        document.querySelectorAll('.coord-list').forEach(list => {
+            list.dataset.coords.split('|').forEach(entry => {
+                const [name, ids, note, kind] = entry.split(':');
+                const item = document.createElement('div');
+                item.className = 'coord-item' + (kind ? ' ' + kind : '');
+                item.innerHTML = `<div class="coord-row"><span class="coord-name">${name}</span><span class="coord-leader"></span></div>`
+                    + (note ? `<div class="coord-note">${note}</div>` : '')
+                    + `<div class="coord-stamps"></div>`;
+                ids.split(',').forEach(id => {
+                    const s = document.createElement('span');
+                    s.className = 'coord-slot stamp-id-' + id;
+                    s.style.setProperty('--tilt', tilt(+id));
+                    s.innerHTML = `<span class="num">${id}</span>`;
+                    item.querySelector('.coord-stamps').appendChild(s);
+                });
+                list.appendChild(item);
+            });
+        });
+
+        // =====================================================
+        // 版面計算：讓 stage 永遠維持圖片原始比例
+        // 電腦 / 橫向：整個跨頁置中
+        // 手機直式：一次放大一頁 (左頁 → 右頁 → 下一個跨頁)
+        // =====================================================
+        const container = document.getElementById('bookContainer');
+        const pages = [...document.querySelectorAll('.page')];
+        const mobileQuery = window.matchMedia('(max-width: 700px) and (orientation: portrait)');
+
+        let views = [];
+        let viewIndex = 0;
+
+        function buildViews() {
+            const current = views[viewIndex];
+            views = [];
+            pages.forEach((p, i) => {
+                if (p.dataset.kind === 'spread' && mobileQuery.matches) {
+                    views.push({ page: i, half: 'left' }, { page: i, half: 'right' });
+                } else {
+                    views.push({ page: i, half: null });
+                }
+            });
+            // 切換模式時，盡量停在同一個跨頁
+            viewIndex = current ? Math.max(0, views.findIndex(v => v.page === current.page)) : 0;
+
+            const dots = document.getElementById('dots');
+            dots.innerHTML = views.map(() => '<span class="dot"></span>').join('');
+        }
+
+        function layout() {
+            const view = views[viewIndex];
+            const W = container.clientWidth;
+            const H = container.clientHeight;
+            const pad = 12;
+
+            pages.forEach((p, i) => p.classList.toggle('active', i === view.page));
+
+            const page = pages[view.page];
+            const stage = page.querySelector('.stage');
+            const img = page.querySelector('.page-img');
+            const ratio = (img.naturalWidth && img.naturalHeight) ? img.naturalWidth / img.naturalHeight : 1.6;
+
+            let w, tx, ty;
+            if (!view.half) {
+                w = Math.min(W - pad * 2, (H - pad * 2) * ratio);
+                const h = w / ratio;
+                tx = (W - w) / 2;
+                ty = (H - h) / 2;
+            } else {
+                const c = PAPER_CROP[view.half];
+                const cw = c.x1 - c.x0, ch = c.y1 - c.y0;
+                w = Math.min((W - pad * 2) / cw, ((H - pad * 2) * ratio) / ch);
+                const h = w / ratio;
+                tx = W / 2 - ((c.x0 + c.x1) / 2) * w;
+                ty = H / 2 - ((c.y0 + c.y1) / 2) * h;
+            }
+            stage.style.width = w + 'px';
+            stage.style.height = (w / ratio) + 'px';
+            stage.style.transform = `translate(${tx}px, ${ty}px)`;
+
+            // 底部提示與頁碼點
+            document.querySelectorAll('.dot').forEach((d, i) => d.classList.toggle('on', i === viewIndex));
+            const hint = document.getElementById('navHint');
+            if (viewIndex === 0) {
+                hint.className = 'hint-cover';
+                hint.textContent = '🐾 點擊翻開魔書 🐾';
+            } else {
+                hint.className = '';
+                hint.textContent = viewIndex === views.length - 1
+                    ? '已是最後一頁 ・ 點左側返回上一頁'
+                    : '點右側下一頁 ・ 點左側上一頁';
+            }
+        }
+
+        function go(step) {
+            const next = viewIndex + step;
+            if (next < 0 || next >= views.length) {
+                // 已經是第一頁 / 最後一頁：輕輕晃一下表示翻不動
+                container.classList.remove('nudge');
+                void container.offsetWidth;
+                container.classList.add('nudge');
+                return;
+            }
+            viewIndex = next;
+            layout();
+        }
+
+        // 點左邊 1/3 = 上一頁，其餘 = 下一頁（封面點哪裡都是下一頁）
+        container.addEventListener('click', e => {
+            const rect = container.getBoundingClientRect();
+            const isLeft = (e.clientX - rect.left) < rect.width / 3;
+            go(isLeft && viewIndex > 0 ? -1 : 1);
+        });
+        document.addEventListener('keydown', e => {
+            if (e.key === 'ArrowRight') go(1);
+            if (e.key === 'ArrowLeft') go(-1);
+        });
+
+        // 圖片載入後才知道真實比例
+        document.querySelectorAll('.page-img').forEach(img => {
+            if (!img.complete) img.addEventListener('load', layout);
+        });
+        window.addEventListener('resize', layout);
+        mobileQuery.addEventListener('change', () => { buildViews(); layout(); });
+
+        buildViews();
+        layout();
+
+        // =====================================================
+        // 從 Google Sheets 同步印章進度
+        // =====================================================
+        const API_URL = "https://script.google.com/macros/s/AKfycbzhmLK2BTTQQ4hej4SHwhzOgYWhoI5u29c4d6iDeaWyFz97ydRNYbCC32hUnJ129_0Wdw/exec";
+
+        function showInvalid() {
+            document.getElementById('badCode').textContent = playerId || '（空白）';
+            document.body.className = 'invalid';
+        }
+
+        // 回傳 true = 魔書存在；false = 契約碼不存在；網路錯誤則丟出例外
+        function checkStamps() {
+            return fetch(`${API_URL}?action=get_stamps&code=${encodeURIComponent(playerId)}`)
+                .then(res => res.json())
+                .then(data => {
+                    if (data.status !== "success") return false;
+                    if (data.stamps) {
+                        data.stamps.forEach(n => {
+                            document.querySelectorAll('.stamp-id-' + n).forEach(slot => {
+                                activateSlot(slot, n);
+                            });
+                        });
+                        const count = new Set(data.stamps.map(Number)).size;
+                        document.getElementById('progress').textContent = count;
+                        document.querySelectorAll('.seal-count').forEach(el => { el.textContent = Math.min(count, UNLOCK_AT); });
+                        if (count >= UNLOCK_AT) unlockCipher();
+                    }
+                    // 倒數計時資訊（開始時間由關主在後台按下「開始計時」）
+                    if (data.serverNow) clockOffset = new Date(data.serverNow).getTime() - Date.now();
+                    if (data.limitMin) limitMs = data.limitMin * 60000;
+                    startedAt = data.startedAt ? new Date(data.startedAt).getTime() : null;
+                    updateTimer();
+                    return true;
+                });
+        }
+
+        // ===== 倒數計時 =====
+        let clockOffset = 0, limitMs = 45 * 60000, startedAt = null, timeupShown = false;
+        function updateTimer() {
+            const box = document.getElementById('timerBox');
+            const label = document.getElementById('timerLabel'), clock = document.getElementById('timerClock');
+            if (!startedAt) { box.className = 'timer-box idle'; label.textContent = '⏳ 等待關主開始計時'; clock.textContent = ''; return; }
+            const left = startedAt + limitMs - (Date.now() + clockOffset);
+            if (left <= 0) {
+                box.className = 'timer-box over'; label.textContent = '⏰ 時間到！請回到起點結算'; clock.textContent = '';
+                // 每本魔書只跳一次提醒
+                const key = 'sealhunter_timeup_' + playerId + '_' + startedAt;
+                let seen = false; try { seen = !!localStorage.getItem(key); } catch (e) {}
+                if (!timeupShown && !seen) {
+                    timeupShown = true;
+                    document.getElementById('timeup').classList.add('show');
+                    try { localStorage.setItem(key, '1'); } catch (e) {}
+                }
+                return;
+            }
+            const m = Math.floor(left / 60000), sec = Math.floor(left / 1000) % 60;
+            box.className = 'timer-box ' + (left < 60000 ? 'urgent' : left < 5 * 60000 ? 'low' : 'run');
+            label.textContent = left < 5 * 60000 ? '⚠️ 剩餘時間' : '⏳ 剩餘時間';
+            clock.textContent = `${String(m).padStart(2, '0')}:${String(sec).padStart(2, '0')}`;
+        }
+        setInterval(updateTimer, 500);
+        document.getElementById('timeupBtn').addEventListener('click', e => {
+            e.stopPropagation();
+            document.getElementById('timeup').classList.remove('show');
+        });
+
+        // 先驗證契約碼，確認存在才打開魔書並開始同步
+        function verifyAndOpen(retry = 0) {
+            checkStamps()
+                .then(ok => {
+                    if (!ok) return showInvalid();
+                    document.body.classList.remove('verifying');
+                    document.body.classList.add('verified');
+                    layout();
+                    setInterval(() => checkStamps().catch(err => console.error("同步印章失敗", err)), 3000);
+                })
+                .catch(() => {
+                    // 網路不穩不代表契約碼錯誤，稍後重試
+                    setTimeout(() => verifyAndOpen(retry + 1), Math.min(2000 * (retry + 1), 8000));
+                });
+        }
+
+        if (/^[A-Z0-9]{4}$/.test(playerId)) {
+            verifyAndOpen();
+        } else {
+            showInvalid();
+        }
+    </script>
+</body>
+</html>
