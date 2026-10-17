@@ -237,7 +237,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         if (timeSlotGrid) {
             timeSlotGrid.innerHTML = `<div style="color: #a855f7; text-align: center; width: 100%;">讀取時段資料中...</div>`;
-            fetch(`${API_URL}?action=get_availability`)
+            fetch(`${API_URL}?action=get_availability&t=${Date.now()}`, { cache: 'no-store' })   // 加上時間參數，避免瀏覽器拿到舊的資料
                 .then(res => res.json())
                 .then(data => {
                     if (data.status === "success") {
@@ -262,7 +262,7 @@ document.addEventListener("DOMContentLoaded", () => {
                                 btn.disabled = true;
                                 btn.innerHTML = `<span class="time-text">${slot}</span><span class="spots-text">已滿</span>`;
                             } else {
-                                btn.innerHTML = `<span class="time-text">${slot}</span><span class="spots-text">剩餘 ${remaining} 人</span>`;
+                                btn.innerHTML = `<span class="time-text">${slot}</span><span class="spots-text">剩餘 ${remaining} 個位置</span>`;
                                 btn.addEventListener("click", () => {
                                     // 1. 處理時段按鈕的點擊與視覺效果
                                     document.querySelectorAll(".time-btn").forEach(b => b.classList.remove("selected"));
@@ -288,7 +288,7 @@ document.addEventListener("DOMContentLoaded", () => {
                                         // 自動幫他降到目前時段的最大可選人數
                                         playerCountSelect.value = remaining.toString();
                                         // 彈出我們自訂的魔法提示框告訴他
-                                        showMagicAlert(`魔法陣感應到空間不足！<br>該時段僅剩 ${remaining} 個名額，已為您自動調整同行人數。`, "warn");
+                                        showMagicAlert(`魔法陣感應到空間不足！<br>該時段僅剩 ${remaining} 個位置，已為您自動調整同行人數。`, "warn");
                                     }
                                 });
                             }
@@ -343,6 +343,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     loadTimeSlots(); 
                 } else {
                     showMagicAlert("❌ 傳送失敗：" + res.message);
+                    if (res.reason === "FULL") loadTimeSlots();   // 位置不足：重新讀取最新的剩餘位置
                 }
             }).catch(err => {
                 showMagicAlert("❌ 契約傳送失敗，請稍後再試。");
