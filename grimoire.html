@@ -534,6 +534,68 @@
             .stamp-active { animation: none !important; }
             .hint-cover { animation: none; }
         }
+
+        /* ===== 地圖按鈕與地圖視窗 ===== */
+        .map-btn {
+            position: fixed; top: calc(12px + env(safe-area-inset-top)); right: 14px; z-index: 40;
+            display: flex; align-items: center; gap: 6px;
+            padding: 8px 14px; border-radius: 22px; cursor: pointer;
+            border: 1px solid #c9a86a; background: rgba(28, 18, 30, 0.9); color: #efe3c4;
+            font-family: inherit; font-size: 0.9rem; font-weight: bold;
+            box-shadow: 0 0 12px rgba(201, 168, 106, 0.25);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .map-btn:hover, .map-btn:focus-visible { transform: translateY(-1px); box-shadow: 0 0 16px rgba(201, 168, 106, 0.5); outline: none; }
+        .map-btn .icon { font-size: 1.1rem; }
+        body:not(.verified) .map-btn { display: none; }
+
+        .map-view {
+            position: fixed; inset: 0; z-index: 70; display: none;
+            flex-direction: column; align-items: center; justify-content: center; gap: 10px;
+            padding: 16px; background: rgba(8, 4, 12, 0.92);
+        }
+        .map-view.show { display: flex; }
+        .map-scroll { width: 100%; display: flex; justify-content: center; }
+        .map-frame { position: relative; flex: none; width: min(100%, calc((100dvh - 110px) * 16 / 9)); }
+        /* 手機直式：地圖放大到兩倍寬，左右滑動查看 */
+        @media (max-width: 700px) and (orientation: portrait) {
+            .map-scroll { overflow-x: auto; justify-content: flex-start; -webkit-overflow-scrolling: touch; }
+            .map-frame { width: 210vw; }
+            .seal .s-main { font-size: 10px; }
+            .seal .s-sub { font-size: 8px; }
+        }
+        .map-frame img { display: block; width: 100%; height: auto; border-radius: 8px; box-shadow: 0 0 30px rgba(0, 0, 0, 0.7); }
+        .map-head { display: flex; align-items: center; gap: 14px; color: #efe3c4; font-size: 0.95rem; }
+        .map-head .count { color: #fbbf24; font-weight: bold; }
+        .map-close {
+            background: none; border: 1px solid #6b5a35; color: #efe3c4; border-radius: 16px;
+            padding: 4px 14px; cursor: pointer; font-family: inherit;
+        }
+        .map-tip { color: #8b7aa3; font-size: 0.78rem; }
+
+        /* 封印印章（位置用地圖的百分比，所以不管地圖多大都會對準） */
+        .seal {
+            position: absolute; transform: translate(-50%, -50%) rotate(var(--rot, -12deg));
+            width: 4.4%; aspect-ratio: 1; border-radius: 50%;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            pointer-events: none; line-height: 1.1; text-align: center;
+            font-weight: 900; color: #fff2e8;
+            animation: seal-in 0.45s cubic-bezier(0.2, 1.4, 0.4, 1) both;
+        }
+        .seal.full {
+            background: radial-gradient(circle at 35% 30%, #e0483d, #a3231a 60%, #6e120c);
+            border: 2px solid #ffd2c4;
+            box-shadow: 0 0 0 2px rgba(110, 18, 12, 0.8), 0 3px 8px rgba(0, 0, 0, 0.6);
+        }
+        .seal.part {
+            background: rgba(70, 14, 12, 0.88);
+            border: 2px dashed #ff8f80;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.5);
+        }
+        .seal .s-main { font-size: clamp(7px, 0.9vw, 13px); letter-spacing: 1px; }
+        .seal .s-sub { font-size: clamp(5px, 0.65vw, 10px); opacity: 0.9; margin-top: 1px; }
+        .seal.big { width: 7%; }
+        @keyframes seal-in { from { opacity: 0; transform: translate(-50%, -50%) rotate(var(--rot, -12deg)) scale(1.8); } }
     </style>
 </head>
 <body class="verifying">
@@ -556,6 +618,23 @@
         <div class="player-id" id="displayId">----</div>
         <div class="info-sub">請將此編號出示給關主 ｜ 已封印 <span class="progress" id="progress">0</span> / 17</div>
         <div class="timer-box idle" id="timerBox"><span id="timerLabel">⏳ 等待關主開始計時</span><span class="clock" id="timerClock"></span></div>
+    </div>
+
+    <!-- 地圖按鈕 -->
+    <button class="map-btn" id="mapBtn" type="button" aria-label="打開冒險地圖"><span class="icon">🗺️</span>冒險地圖</button>
+
+    <!-- 地圖視窗 -->
+    <div class="map-view" id="mapView">
+        <div class="map-head">
+            <span>已封印 <span class="count" id="mapCount">0</span> / 17</span>
+            <button class="map-close" id="mapClose" type="button">✕ 關閉</button>
+        </div>
+        <div class="map-scroll">
+            <div class="map-frame" id="mapFrame">
+                <img src="image/Mapp.png" alt="冒險地圖">
+            </div>
+        </div>
+        <div class="map-tip">點擊空白處關閉 ・ 手機可以左右滑動地圖</div>
     </div>
 
     <!-- 時間到 -->
@@ -1014,6 +1093,7 @@
             go(isLeft && viewIndex > 0 ? -1 : 1);
         });
         document.addEventListener('keydown', e => {
+            if (document.getElementById('mapView').classList.contains('show')) return;   // 看地圖時不翻頁
             if (e.key === 'ArrowRight') go(1);
             if (e.key === 'ArrowLeft') go(-1);
         });
@@ -1039,6 +1119,53 @@
         }
 
         // 回傳 true = 魔書存在；false = 契約碼不存在；網路錯誤則丟出例外
+        // =====================================================
+        // 冒險地圖：在完成的關卡蓋上「已封印」，部分完成顯示進度
+        // x / y 是地圖圖片上的位置（百分比），對應 image/Mapp.png（1920×1080）
+        // =====================================================
+        const MAP_SPOTS = [
+            { name: '起點',   x: 945,  y: 598, stamps: [1, 2, 3, 4] },
+            { name: '第一關', x: 896,  y: 425, stamps: [5] },
+            { name: '第二關', x: 459,  y: 402, stamps: [6] },
+            { name: '第三關', x: 300,  y: 715, stamps: [7] },
+            { name: '第四關', x: 645,  y: 272, stamps: [8, 9] },
+            { name: '第五關', x: 596,  y: 62,  stamps: [10] },
+            { name: '第六關', x: 1046, y: 52,  stamps: [11] },
+            { name: '第七關', x: 1361, y: 212, stamps: [12, 13] },
+            { name: '第八關', x: 1423, y: 400, stamps: [14] },
+            { name: '？？？', x: 1080, y: 300, stamps: [15] },
+            { name: '魔王城', x: 1075, y: 845, stamps: [16, 17], big: true }
+        ];
+        let lastSealKey = '';
+        function renderMapSeals(owned) {
+            const set = new Set(owned);
+            document.getElementById('mapCount').textContent = set.size;
+            const key = [...set].sort((a, b) => a - b).join(',');
+            if (key === lastSealKey) return;     // 沒有新的紋章就不重畫（避免印章動畫一直重播）
+            lastSealKey = key;
+            const frame = document.getElementById('mapFrame');
+            frame.querySelectorAll('.seal').forEach(el => el.remove());
+            MAP_SPOTS.forEach((sp, i) => {
+                const got = sp.stamps.filter(n => set.has(n)).length;
+                if (!got) return;
+                const el = document.createElement('div');
+                const full = got === sp.stamps.length;
+                el.className = 'seal ' + (full ? 'full' : 'part') + (sp.big ? ' big' : '');
+                el.style.left = (sp.x / 1920 * 100) + '%';
+                el.style.top = (sp.y / 1080 * 100) + '%';
+                el.style.setProperty('--rot', (((i * 37) % 24) - 16) + 'deg');
+                el.innerHTML = full
+                    ? '<span class="s-main">已封印</span>'
+                    : `<span class="s-main">${got} / ${sp.stamps.length}</span><span class="s-sub">封印中</span>`;
+                frame.appendChild(el);
+            });
+        }
+        const mapView = document.getElementById('mapView');
+        document.getElementById('mapBtn').addEventListener('click', e => { e.stopPropagation(); mapView.classList.add('show'); });
+        document.getElementById('mapClose').addEventListener('click', e => { e.stopPropagation(); mapView.classList.remove('show'); });
+        mapView.addEventListener('click', e => { e.stopPropagation(); if (e.target === mapView) mapView.classList.remove('show'); });
+        document.addEventListener('keydown', e => { if (e.key === 'Escape') mapView.classList.remove('show'); });
+
         function checkStamps() {
             return fetch(`${API_URL}?action=get_stamps&code=${encodeURIComponent(playerId)}`)
                 .then(res => res.json())
@@ -1052,6 +1179,7 @@
                         });
                         const count = new Set(data.stamps.map(Number)).size;
                         document.getElementById('progress').textContent = count;
+                        renderMapSeals(data.stamps.map(Number));
                         document.querySelectorAll('.seal-count').forEach(el => { el.textContent = Math.min(count, UNLOCK_AT); });
                         if (count >= UNLOCK_AT) unlockCipher();
                     }
