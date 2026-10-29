@@ -103,7 +103,7 @@
                 <button class="btn-ghost" id="copyAllBtn">全部複製</button>
             </div>
             <div class="code-cards" id="codeCards"></div>
-            <button id="startNewBtn" style="margin-top:12px; background:#16a34a;">▶ 這批魔書開始計時（45 分鐘）</button>
+            <button id="startNewBtn" style="margin-top:12px; background:#16a34a;">▶ 這批魔書開始計時（60 分鐘）</button>
         </div>
 
         <h2>📖 派發紀錄</h2>
@@ -217,7 +217,7 @@
 
     function showNewCodes(codes) {
         $('newCodes').classList.remove('hidden');
-        $('startNewBtn').textContent = '▶ 這批魔書開始計時（45 分鐘）';
+        $('startNewBtn').textContent = '▶ 這批魔書開始計時（60 分鐘）';
         $('codeCards').innerHTML = codes.map(c =>
             `<div class="code-card" data-code="${c}"><div class="code">${c}</div><div class="tip">點擊複製</div></div>`
         ).join('');
@@ -263,7 +263,7 @@
     }
 
     // ===== 計時 =====
-    let clockOffset = 0, limitMs = 45 * 60000;
+    let clockOffset = 0, limitMs = 60 * 60000;
     function syncClock(res) {
         if (res.serverNow) clockOffset = new Date(res.serverNow).getTime() - Date.now();
         if (res.limitMin) limitMs = res.limitMin * 60000;
@@ -272,7 +272,10 @@
     const fmt = ms => { const t = Math.max(0, Math.round(ms / 1000)); return `${String(Math.floor(t / 60)).padStart(2, '0')}:${String(t % 60).padStart(2, '0')}`; };
     const clearMs = c => (c.clearedAt && c.startedAt) ? new Date(c.clearedAt) - new Date(c.startedAt) : null;
     function timerInfo(c) {
-        if (c.clearedAt) return { cls: 'clear', text: clearMs(c) !== null ? `🏆 通關 ${fmt(clearMs(c))}` : '🏆 已通關' };
+        if (c.clearedAt) {
+            const who = c.winner ? `（${c.winner}）` : '';
+            return { cls: 'clear', text: (clearMs(c) !== null ? `🏆 通關 ${fmt(clearMs(c))}` : '🏆 已通關') + who };
+        }
         if (!c.startedAt) return { cls: 'idle', text: '未開始計時' };
         const left = new Date(c.startedAt).getTime() + limitMs - nowMs();
         if (left <= 0) return { cls: 'over', text: '⏰ 時間到' };
@@ -319,7 +322,7 @@
                     <span class="n">${escapeHtml(c.note) || '<span style="color:#6b5a80">（無備註）</span>'}</span>
                     <span class="t">${formatTime(c.createdAt)}</span>
                     <div class="timer">
-                        <span class="timer-state ${timerInfo(c).cls}" data-code="${escapeHtml(c.code)}">${timerInfo(c).text}</span>
+                        <span class="timer-state ${timerInfo(c).cls}" data-code="${escapeHtml(c.code)}">${escapeHtml(timerInfo(c).text)}</span>
                         <span class="stamp-count">紋章 ${c.stamps || 0} / 17</span>
                         <span style="flex:1"></span>
                         ${c.startedAt
