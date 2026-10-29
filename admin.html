@@ -113,6 +113,7 @@
             <div class="result-box" id="resultBox">
                 <p><strong>玩家編號：</strong> <span id="resId" style="color:#ff7300;"></span></p>
                 <p><strong>收集進度：</strong> <span id="resCount" style="color:#4ade80;"></span> / 17</p>
+                <p id="resClear" style="display:none;"></p>
                 <div class="owned" id="resList"></div>
                 <div class="legend" id="resNote"></div>
             </div>
@@ -284,6 +285,7 @@
             $('resId').textContent = checkId;
             $('resCount').textContent = "-";
             list.innerHTML = '';
+            $('resClear').style.display = 'none';
             note.textContent = "讀取中...";
 
             fetch(`${API_URL}?action=get_stamps&code=${encodeURIComponent(checkId)}`)
@@ -298,6 +300,23 @@
                         }
                         list.innerHTML = html;
                         note.textContent = owned.size ? '亮起的是已獲得的紋章，暗的是尚未獲得' : '尚未獲得任何紋章';
+                        // 通關資訊：通關時間、路線、擊敗者
+                        const rc = $('resClear');
+                        if (data.clearedAt) {
+                            let t = '';
+                            if (data.startedAt) {
+                                const sec = Math.round((new Date(data.clearedAt) - new Date(data.startedAt)) / 1000);
+                                t = `${Math.floor(sec / 60)} 分 ${sec % 60} 秒`;
+                            }
+                            const route = data.route === '感化' ? '🐾 感化路線' : data.route === '討伐' ? '⚔ 討伐路線' : '（關主手動蓋章）';
+                            rc.innerHTML = `<strong>🏆 已擊敗魔王：</strong> <span style="color:#fbbf24;">${t || '已通關'}</span><br>` +
+                                `<span style="color:${data.route === '討伐' ? '#f87171' : '#f9a8d4'};">${route}</span>` +
+                                (data.winner ? `・擊敗者 <span style="color:#fff;"></span>` : '');
+                            if (data.winner) rc.querySelector('span:last-child').textContent = data.winner;
+                            rc.style.display = 'block';
+                        } else {
+                            rc.style.display = 'none';
+                        }
                     } else {
                         note.textContent = "❌ " + (data.message || "查無此契約碼");
                     }

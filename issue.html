@@ -273,7 +273,8 @@
     const clearMs = c => (c.clearedAt && c.startedAt) ? new Date(c.clearedAt) - new Date(c.startedAt) : null;
     function timerInfo(c) {
         if (c.clearedAt) {
-            const who = c.winner ? `（${c.winner}）` : '';
+            const route = c.route === '感化' ? '🐾感化' : c.route === '討伐' ? '⚔討伐' : '';
+            const who = (route || c.winner) ? `（${[route, c.winner].filter(Boolean).join('・')}）` : '';
             return { cls: 'clear', text: (clearMs(c) !== null ? `🏆 通關 ${fmt(clearMs(c))}` : '🏆 已通關') + who };
         }
         if (!c.startedAt) return { cls: 'idle', text: '未開始計時' };
