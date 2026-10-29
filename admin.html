@@ -230,12 +230,17 @@
             btn.disabled = true;
 
             const ok = [], failed = [];
+            let clearInfo = '';   // 第 17 枚紋章會附上通關時間
             for (let k = 0; k < ids.length; k++) {
                 const id = ids[k];
                 setStatus(status, `⏳ 魔法傳輸中…（${k + 1} / ${ids.length}）${stampName(id)}`, "#fbbf24");
                 try {
                     const res = await api({ action: 'add_stamp', code: playerId, stampId: id });
-                    if (res.status === "success") ok.push(id);
+                    if (res.status === "success") {
+                        ok.push(id);
+                        const m = (res.message || '').match(/（通關時間.*?）/);
+                        if (m) clearInfo = m[0];
+                    }
                     else {
                         failed.push(`${stampName(id)}：${res.message || '失敗'}`);
                         // 密碼失效或契約碼不存在時，後面也不會成功，直接停止
@@ -259,6 +264,7 @@
             updateSelectedBar();
 
             let msg = ok.length ? `✅ 已賦予 ${playerId}：${ok.map(stampName).join('、')}` : '';
+            if (clearInfo) msg += `\n🏆 擊敗魔王！${clearInfo}`;
             if (failed.length) msg += (msg ? '\n' : '') + `❌ 未成功：\n${failed.join('\n')}`;
             setStatus(status, msg, failed.length ? (ok.length ? "#fbbf24" : "#ef4444") : "#4ade80");
 

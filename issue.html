@@ -52,6 +52,9 @@
         .timer-state.run { color: #4ade80; }
         .timer-state.low { color: #fbbf24; }
         .timer-state.over { color: #ef4444; }
+        .timer-state.clear { color: #fbbf24; }
+        .rank { min-width: 2.2em; font-weight: bold; color: #fbbf24; }
+        .rank-on { background: #92400e !important; color: #fff !important; border-color: #fbbf24 !important; }
         .mini-btn { background: transparent; border: 1px solid #6b21a8; color: #c4a5f5; font-size: 0.78rem; padding: 3px 9px; width: auto; border-radius: 6px; cursor: pointer; }
         .mini-btn:hover { background: #6b21a8; color: #fff; box-shadow: none; }
         .mini-btn.start { border-color: #16a34a; color: #4ade80; }
@@ -100,12 +103,13 @@
                 <button class="btn-ghost" id="copyAllBtn">全部複製</button>
             </div>
             <div class="code-cards" id="codeCards"></div>
-            <button id="startNewBtn" style="margin-top:12px; background:#16a34a;">▶ 這批魔書開始計時（60 分鐘）</button>
+            <button id="startNewBtn" style="margin-top:12px; background:#16a34a;">▶ 這批魔書開始計時（45 分鐘）</button>
         </div>
 
         <h2>📖 派發紀錄</h2>
         <div class="list-tools">
             <input type="search" id="search" placeholder="搜尋契約碼或備註">
+            <button class="btn-ghost" id="rankBtn">🏆 通關排名</button>
             <button class="btn-ghost" id="refreshBtn">重新整理</button>
         </div>
         <div class="batch-bar">
@@ -213,7 +217,7 @@
 
     function showNewCodes(codes) {
         $('newCodes').classList.remove('hidden');
-        $('startNewBtn').textContent = '▶ 這批魔書開始計時（60 分鐘）';
+        $('startNewBtn').textContent = '▶ 這批魔書開始計時（45 分鐘）';
         $('codeCards').innerHTML = codes.map(c =>
             `<div class="code-card" data-code="${c}"><div class="code">${c}</div><div class="tip">點擊複製</div></div>`
         ).join('');
@@ -259,13 +263,16 @@
     }
 
     // ===== 計時 =====
-    let clockOffset = 0, limitMs = 60 * 60000;
+    let clockOffset = 0, limitMs = 45 * 60000;
     function syncClock(res) {
         if (res.serverNow) clockOffset = new Date(res.serverNow).getTime() - Date.now();
         if (res.limitMin) limitMs = res.limitMin * 60000;
     }
     const nowMs = () => Date.now() + clockOffset;
+    const fmt = ms => { const t = Math.max(0, Math.round(ms / 1000)); return `${String(Math.floor(t / 60)).padStart(2, '0')}:${String(t % 60).padStart(2, '0')}`; };
+    const clearMs = c => (c.clearedAt && c.startedAt) ? new Date(c.clearedAt) - new Date(c.startedAt) : null;
     function timerInfo(c) {
+        if (c.clearedAt) return { cls: 'clear', text: clearMs(c) !== null ? `🏆 通關 ${fmt(clearMs(c))}` : '🏆 已通關' };
         if (!c.startedAt) return { cls: 'idle', text: '未開始計時' };
         const left = new Date(c.startedAt).getTime() + limitMs - nowMs();
         if (left <= 0) return { cls: 'over', text: '⏰ 時間到' };
@@ -296,14 +303,18 @@
         });
     }, 1000);
 
+    let rankMode = false;
     function renderList() {
         const q = $('search').value.trim().toUpperCase();
-        const rows = allCodes.filter(c =>
+        let rows = allCodes.filter(c =>
             !q || c.code.includes(q) || String(c.note || '').toUpperCase().includes(q)
         );
+        // 通關排名模式：只列出已通關的魔書，依「擊敗魔王的時刻」先後排序
+        if (rankMode) rows = rows.filter(c => c.clearedAt).sort((a, b) => new Date(a.clearedAt) - new Date(b.clearedAt));
         $('codeList').innerHTML = rows.length
-            ? rows.map(c => `
+            ? rows.map((c, i) => `
                 <div class="code-row">
+                    ${rankMode ? `<span class="rank">${['🥇', '🥈', '🥉'][i] || (i + 1) + '.'}</span>` : ''}
                     <span class="c">${escapeHtml(c.code)}</span>
                     <span class="n">${escapeHtml(c.note) || '<span style="color:#6b5a80">（無備註）</span>'}</span>
                     <span class="t">${formatTime(c.createdAt)}</span>
@@ -316,11 +327,16 @@
                             : `<button class="mini-btn start" data-start="${escapeHtml(c.code)}">▶ 開始</button>`}
                     </div>
                 </div>`).join('')
-            : `<div class="empty">${allCodes.length ? '找不到符合的紀錄' : '還沒有派發任何契約碼'}</div>`;
+            : `<div class="empty">${rankMode ? '還沒有人擊敗魔王' : allCodes.length ? '找不到符合的紀錄' : '還沒有派發任何契約碼'}</div>`;
         $('countNote').textContent = `共派發 ${allCodes.length} 本魔書`;
     }
 
     $('search').addEventListener('input', renderList);
+    $('rankBtn').addEventListener('click', () => {
+        rankMode = !rankMode;
+        $('rankBtn').classList.toggle('rank-on', rankMode);
+        renderList();
+    });
     $('codeList').addEventListener('click', e => {
         const s = e.target.closest('[data-start]'), r = e.target.closest('[data-reset]');
         if (s) { s.disabled = true; startTimer([s.dataset.start]); }

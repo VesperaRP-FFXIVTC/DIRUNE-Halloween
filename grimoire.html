@@ -71,6 +71,8 @@
         .timer-box.urgent { border-color: rgba(239, 68, 68, 0.7); animation: pulse 1s infinite; }
         .timer-box.urgent .clock { color: #ef4444; text-shadow: 0 0 10px rgba(239, 68, 68, 0.7); }
         .timer-box.over { color: #fca5a5; border-color: #ef4444; background: rgba(127, 29, 29, 0.4); }
+        .timer-box.cleared { color: #fde68a; border-color: #fbbf24; background: rgba(120, 80, 10, 0.35); box-shadow: 0 0 14px rgba(251, 191, 36, 0.35); }
+        .timer-box.cleared .clock { color: #fbbf24; text-shadow: 0 0 10px rgba(251, 191, 36, 0.7); }
         @keyframes pulse { 50% { box-shadow: 0 0 14px rgba(239, 68, 68, 0.6); } }
 
         /* 時間到的提示 */
@@ -1187,6 +1189,7 @@
                     if (data.serverNow) clockOffset = new Date(data.serverNow).getTime() - Date.now();
                     if (data.limitMin) limitMs = data.limitMin * 60000;
                     startedAt = data.startedAt ? new Date(data.startedAt).getTime() : null;
+                    clearedAt = data.clearedAt ? new Date(data.clearedAt).getTime() : null;
                     updateTimer();
                     return true;
                 });
@@ -1194,9 +1197,19 @@
 
         // ===== 倒數計時 =====
         let clockOffset = 0, limitMs = 60 * 60000, startedAt = null, timeupShown = false;
+        let clearedAt = null;   // 擊敗魔王（蓋下第 17 枚紋章）的時刻
         function updateTimer() {
             const box = document.getElementById('timerBox');
             const label = document.getElementById('timerLabel'), clock = document.getElementById('timerClock');
+            if (clearedAt) {   // 已通關：停止倒數，改顯示通關時間
+                box.className = 'timer-box cleared';
+                if (startedAt) {
+                    const t = Math.max(0, Math.round((clearedAt - startedAt) / 1000));
+                    label.textContent = '🏆 通關時間';
+                    clock.textContent = `${String(Math.floor(t / 60)).padStart(2, '0')}:${String(t % 60).padStart(2, '0')}`;
+                } else { label.textContent = '🏆 已擊敗紅貓魔王'; clock.textContent = ''; }
+                return;
+            }
             if (!startedAt) { box.className = 'timer-box idle'; label.textContent = '⏳ 等待關主開始計時'; clock.textContent = ''; return; }
             const left = startedAt + limitMs - (Date.now() + clockOffset);
             if (left <= 0) {
