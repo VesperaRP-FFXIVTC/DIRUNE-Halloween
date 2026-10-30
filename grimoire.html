@@ -374,6 +374,21 @@
         }
         .lore em { font-style: normal; color: var(--rubric); font-weight: 700; }
 
+        /* ===== 冒險守則 ===== */
+        .rules { list-style: none; margin: 0; padding: 0 0.6cqw; display: flex; flex-direction: column; gap: 1.5cqw; }
+        .rules li {
+            position: relative; padding-left: 3.2cqw;
+            font-family: var(--hand); font-size: 1.5cqw; line-height: 1.7; color: var(--ink);
+        }
+        .rules li::before {
+            content: attr(data-n); position: absolute; left: 0; top: 0.15cqw;
+            width: 2.3cqw; height: 2.3cqw; border-radius: 50%;
+            border: 0.15cqw solid var(--rubric); color: var(--rubric);
+            font-size: 1.25cqw; font-weight: 700; line-height: 2.1cqw; text-align: center;
+        }
+        .rules em { font-style: normal; color: var(--rubric); font-weight: 700; }
+        .rules .sub { display: block; font-size: 1.3cqw; color: var(--ink-soft); margin-top: 0.3cqw; }
+
         /* 肉球對照表 */
         .paw-table {
             display: grid;
@@ -657,7 +672,32 @@
             </div>
         </div>
 
-        <!-- 頁面 1：紋章圖鑑 -->
+        <!-- 頁面 1：冒險守則（與接待處的說明一致） -->
+        <div class="page" data-kind="spread">
+            <div class="stage">
+                <img class="page-img" src="image/內頁.png" alt="">
+                <div class="zone zone-left">
+                    <div class="page-title">冒險守則 I</div>
+                    <ul class="rules">
+                        <li data-n="1">冒險<em>限時 60 分鐘</em>，剩餘時間顯示於魔書上方。
+                            <span class="sub">關卡不需依照順序，可點右上角的「冒險地圖」查看位置與封印進度。</span></li>
+                        <li data-n="2">若看到<em>關主附近已有其他玩家</em>，或<em>關主的隊伍中已有成員</em>，代表該關卡正有其他冒險者在挑戰中，可以先挑戰其他關卡。</li>
+                        <li data-n="3">若只剩下該關卡尚未挑戰，請在一旁<em>排隊</em>，靜候上一隊挑戰完畢。</li>
+                        <li data-n="4">惟需注意，<em>【第三關】</em>並無以上限制，可隨時前往挑戰。</li>
+                    </ul>
+                </div>
+                <div class="zone zone-right">
+                    <div class="page-title">冒險守則 II</div>
+                    <ul class="rules">
+                        <li data-n="5">集齊<em>十五枚紋章</em>後，即可前往魔王城覲見並挑戰魔王。</li>
+                        <li data-n="6">若未能在限時內進入魔王城，請於時間結束後<em>返回起點的接待處</em>，將依照所收集的紋章兌換報酬。</li>
+                        <li data-n="7">冒險途中若遇到任何問題，歡迎隨時<em>返回起點的接待處</em>尋求協助。</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- 頁面 2：紋章圖鑑 -->
         <div class="page" data-kind="spread">
             <div class="stage">
                 <img class="page-img" src="image/內頁.png" alt="">
