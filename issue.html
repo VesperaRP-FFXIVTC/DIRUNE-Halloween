@@ -60,16 +60,50 @@
         .mini-btn.start { border-color: #16a34a; color: #4ade80; }
         .mini-btn.start:hover { background: #16a34a; color: #fff; }
         .stamp-count { color: #a78bca; }
+        .copyable { cursor: pointer; border-radius: 4px; transition: background 0.2s; }
+        .copyable:hover { background: rgba(255, 115, 0, 0.15); }
+        .copy-btn { flex: none; }
+        .copy-btn.done { border-color: #4ade80; color: #4ade80; }
         .batch-bar { display: flex; gap: 10px; align-items: center; margin-bottom: 10px; }
         .batch-bar button { flex: 1; font-size: 0.95rem; padding: 10px; background: #16a34a; }
         .batch-bar button:hover:not(:disabled) { background: #15803d; box-shadow: 0 0 12px #16a34a; }
         .timer-tip { font-size: 0.78rem; color: #8b7aa3; margin: -2px 0 12px; line-height: 1.6; }
+
+        /* ===== 左右排版（寬螢幕）===== */
+        .admin-panel.wide { max-width: 1180px; }
+        .layout { display: block; }
+        @media (min-width: 980px) {
+            .admin-panel.wide .layout { display: grid; grid-template-columns: 380px 1fr; gap: 28px; align-items: start; }
+            .admin-panel.wide .col-list h2 { border-top: none; padding-top: 0; margin-top: 0; }
+            .admin-panel.wide .col-form { position: sticky; top: 20px; }
+            .admin-panel.wide .code-list { max-height: calc(100vh - 330px); }
+        }
+
+        /* ===== 時段分頁 ===== */
+        .slot-tabs { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
+        .slot-tab {
+            width: auto; padding: 6px 12px; font-size: 0.85rem; border-radius: 16px;
+            background: transparent; border: 1px solid #6b21a8; color: #c4a5f5;
+        }
+        .slot-tab:hover:not(:disabled) { background: #2a1840; box-shadow: none; }
+        .slot-tab.on { background: #6b21a8; color: #fff; border-color: #a855f7; }
+        .slot-tab .cnt { opacity: 0.75; font-size: 0.75rem; margin-left: 4px; }
+        .slot-tab .dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%; margin-left: 5px; vertical-align: middle; }
+
+        /* ===== 勾選 ===== */
+        .code-row .pick { width: 18px; height: 18px; accent-color: #16a34a; flex: none; cursor: pointer; margin: 0; padding: 0; }
+        .code-row.picked { background: rgba(22, 163, 74, 0.08); }
+        .select-bar { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; font-size: 0.85rem; color: #c4a5f5; }
+        .select-bar label { display: flex; align-items: center; gap: 6px; margin: 0; font-weight: normal; color: #c4a5f5; cursor: pointer; }
+        .select-bar input { width: 16px; height: 16px; padding: 0; accent-color: #16a34a; }
+        .batch-bar button.alt { background: #0e7490; }
+        .batch-bar button.alt:hover:not(:disabled) { background: #155e75; box-shadow: 0 0 12px #0e7490; }
         .empty { padding: 20px; text-align: center; color: #8b7aa3; }
         .count-note { font-size: 0.85rem; color: #8b7aa3; margin-top: 8px; text-align: right; }
     </style>
 </head>
 <body>
-<div class="admin-panel">
+<div class="admin-panel" id="panel">
     <h1>📜 契約碼派發</h1>
 
     <!-- 第一步：管理密碼 -->
@@ -84,6 +118,8 @@
 
     <!-- 第二步：派發 -->
     <div id="mainSection" class="hidden">
+      <div class="layout">
+      <div class="col-form">
         <div class="row">
             <div class="form-group">
                 <label for="note">備註（玩家／隊伍名稱）</label>
@@ -105,8 +141,11 @@
             <div class="code-cards" id="codeCards"></div>
             <button id="startNewBtn" style="margin-top:12px; background:#16a34a;">▶ 這批魔書開始計時（60 分鐘）</button>
         </div>
+      </div>
 
+      <div class="col-list">
         <h2>📖 派發紀錄</h2>
+        <div class="slot-tabs" id="slotTabs"></div>
         <div class="list-tools">
             <input type="search" id="search" placeholder="搜尋契約碼或備註">
             <button class="btn-ghost" id="rankBtn">🏆 通關排名</button>
@@ -115,9 +154,19 @@
         <div class="batch-bar">
             <button id="startFilteredBtn">▶ 列表中「未開始」的魔書全部開始計時</button>
         </div>
-        <div class="timer-tip">小技巧：派發時在備註填上時段（例如 21:15），聽完說明後搜尋「21:15」，再按上面的按鈕，就能讓整個時段同時開始計時。</div>
+        <div class="batch-bar">
+            <button id="startPickedBtn" class="alt" disabled>▶ 勾選的魔書開始計時（0 本）</button>
+        </div>
+        <div class="select-bar">
+            <label><input type="checkbox" id="pickAll"> 全選此列表中「未開始」的魔書</label>
+            <span style="flex:1"></span>
+            <a href="#" id="clearPick" style="color:#8b7aa3;">清除勾選</a>
+        </div>
+        <div class="timer-tip">小技巧：派發時在備註寫上時段（例如「Carol、濱萌萌 21:00」），上方就會自動出現該時段的分頁，聽完說明後切到那個分頁，按綠色按鈕即可整個時段同時開始計時。</div>
         <div class="code-list" id="codeList"><div class="empty">讀取中…</div></div>
         <div class="count-note" id="countNote"></div>
+      </div>
+      </div>
 
         <div style="text-align:center; margin-top:20px;">
             <button class="btn-ghost" id="logoutBtn">登出此裝置</button>
@@ -168,6 +217,7 @@
                 try { localStorage.setItem(KEY_STORAGE, key); } catch (e) {}
                 $('keySection').classList.add('hidden');
                 $('mainSection').classList.remove('hidden');
+                $('panel').classList.add('wide');
                 allCodes = res.codes || [];
                 syncClock(res);
                 renderList();
@@ -308,18 +358,57 @@
     }, 1000);
 
     let rankMode = false;
-    function renderList() {
+    let currentSlot = 'all';          // 目前選的時段分頁
+    const picked = new Set();         // 勾選的契約碼
+    // 從備註裡找出時段（例如「Carol、濱萌萌 21:00」→ 21:00）
+    const slotOf = c => { const m = String(c.note || '').match(/(\d{1,2})[:：](\d{2})/); return m ? m[1].padStart(2, '0') + ':' + m[2] : ''; };
+
+    function renderTabs() {
+        const slots = [...new Set(allCodes.map(slotOf).filter(Boolean))].sort();
+        const hasNone = allCodes.some(c => !slotOf(c));
+        if (currentSlot !== 'all' && currentSlot !== 'none' && !slots.includes(currentSlot)) currentSlot = 'all';
+        const tab = (key, label, list) => {
+            const idle = list.filter(c => !c.startedAt).length;
+            const running = list.some(c => c.startedAt && !c.clearedAt && timerInfo(c).cls !== 'over');
+            const dot = running ? '<span class="dot" style="background:#4ade80"></span>' : '';
+            return `<button class="slot-tab${currentSlot === key ? ' on' : ''}" data-slot="${key}">${label}<span class="cnt">${list.length}${idle && idle !== list.length ? `・${idle}未開始` : ''}</span>${dot}</button>`;
+        };
+        $('slotTabs').innerHTML =
+            tab('all', '全部', allCodes) +
+            slots.map(sl => tab(sl, sl, allCodes.filter(c => slotOf(c) === sl))).join('') +
+            (hasNone ? tab('none', '未填時段', allCodes.filter(c => !slotOf(c))) : '');
+    }
+    // 目前列表（時段分頁＋搜尋）
+    function visibleRows() {
         const q = $('search').value.trim().toUpperCase();
-        let rows = allCodes.filter(c =>
-            !q || c.code.includes(q) || String(c.note || '').toUpperCase().includes(q)
+        return allCodes.filter(c =>
+            (currentSlot === 'all' || (currentSlot === 'none' ? !slotOf(c) : slotOf(c) === currentSlot)) &&
+            (!q || c.code.includes(q) || String(c.note || '').toUpperCase().includes(q))
         );
+    }
+    function updatePickUI() {
+        const vis = visibleRows().filter(c => !c.startedAt);
+        $('startPickedBtn').disabled = picked.size === 0;
+        $('startPickedBtn').textContent = `▶ 勾選的魔書開始計時（${picked.size} 本）`;
+        $('pickAll').checked = vis.length > 0 && vis.every(c => picked.has(c.code));
+        const idle = vis.length;
+        $('startFilteredBtn').textContent = currentSlot === 'all'
+            ? `▶ 列表中「未開始」的魔書全部開始計時（${idle} 本）`
+            : `▶ ${currentSlot === 'none' ? '未填時段' : currentSlot + ' 時段'}全部開始計時（${idle} 本未開始）`;
+    }
+
+    function renderList() {
+        renderTabs();
+        let rows = visibleRows();
         // 通關排名模式：只列出已通關的魔書，依「擊敗魔王的時刻」先後排序
         if (rankMode) rows = rows.filter(c => c.clearedAt).sort((a, b) => new Date(a.clearedAt) - new Date(b.clearedAt));
         $('codeList').innerHTML = rows.length
             ? rows.map((c, i) => `
-                <div class="code-row">
+                <div class="code-row${picked.has(c.code) ? ' picked' : ''}">
+                    ${!rankMode && !c.startedAt ? `<input type="checkbox" class="pick" data-pick="${escapeHtml(c.code)}" ${picked.has(c.code) ? 'checked' : ''} aria-label="勾選 ${escapeHtml(c.code)}">` : (rankMode ? '' : '<span style="width:18px;flex:none"></span>')}
                     ${rankMode ? `<span class="rank">${['🥇', '🥈', '🥉'][i] || (i + 1) + '.'}</span>` : ''}
-                    <span class="c">${escapeHtml(c.code)}</span>
+                    <span class="c copyable" data-copy="${escapeHtml(c.code)}" title="點擊複製">${escapeHtml(c.code)}</span>
+                    <button class="mini-btn copy-btn" data-copy="${escapeHtml(c.code)}">📋 複製</button>
                     <span class="n">${escapeHtml(c.note) || '<span style="color:#6b5a80">（無備註）</span>'}</span>
                     <span class="t">${formatTime(c.createdAt)}</span>
                     <div class="timer">
@@ -332,7 +421,10 @@
                     </div>
                 </div>`).join('')
             : `<div class="empty">${rankMode ? '還沒有人擊敗魔王' : allCodes.length ? '找不到符合的紀錄' : '還沒有派發任何契約碼'}</div>`;
-        $('countNote').textContent = `共派發 ${allCodes.length} 本魔書`;
+        $('countNote').textContent = `共派發 ${allCodes.length} 本魔書` + (rows.length !== allCodes.length ? `（目前列出 ${rows.length} 本）` : '');
+        // 已經開始計時的就不再算勾選
+        allCodes.forEach(c => { if (c.startedAt) picked.delete(c.code); });
+        updatePickUI();
     }
 
     $('search').addEventListener('input', renderList);
@@ -341,14 +433,50 @@
         $('rankBtn').classList.toggle('rank-on', rankMode);
         renderList();
     });
+    $('slotTabs').addEventListener('click', e => {
+        const t = e.target.closest('[data-slot]');
+        if (!t) return;
+        currentSlot = t.dataset.slot;
+        renderList();
+    });
+    $('codeList').addEventListener('change', e => {
+        const cb = e.target.closest('[data-pick]');
+        if (!cb) return;
+        cb.checked ? picked.add(cb.dataset.pick) : picked.delete(cb.dataset.pick);
+        cb.closest('.code-row').classList.toggle('picked', cb.checked);
+        updatePickUI();
+    });
+    $('pickAll').addEventListener('change', e => {
+        visibleRows().filter(c => !c.startedAt).forEach(c => e.target.checked ? picked.add(c.code) : picked.delete(c.code));
+        renderList();
+    });
+    $('clearPick').addEventListener('click', e => { e.preventDefault(); picked.clear(); renderList(); });
+    $('startPickedBtn').addEventListener('click', () => {
+        const targets = [...picked];
+        if (!targets.length) return;
+        if (!confirm(`要讓勾選的 ${targets.length} 本魔書開始計時嗎？\n${targets.join('、')}`)) return;
+        $('startPickedBtn').disabled = true;
+        startTimer(targets).finally(() => { picked.clear(); renderList(); });
+    });
+    // 逐個複製契約碼
+    $('codeList').addEventListener('click', e => {
+        const el = e.target.closest('[data-copy]');
+        if (!el) return;
+        const code = el.dataset.copy;
+        copyText(code).then(() => {
+            const btn = el.closest('.code-row').querySelector('.copy-btn');
+            btn.textContent = '✓ 已複製'; btn.classList.add('done');
+            clearTimeout(btn._t);
+            btn._t = setTimeout(() => { btn.textContent = '📋 複製'; btn.classList.remove('done'); }, 1500);
+        });
+    });
     $('codeList').addEventListener('click', e => {
         const s = e.target.closest('[data-start]'), r = e.target.closest('[data-reset]');
         if (s) { s.disabled = true; startTimer([s.dataset.start]); }
         if (r) resetTimer(r.dataset.reset);
     });
     $('startFilteredBtn').addEventListener('click', () => {
-        const q = $('search').value.trim().toUpperCase();
-        const targets = allCodes.filter(c => !c.startedAt && (!q || c.code.includes(q) || String(c.note || '').toUpperCase().includes(q))).map(c => c.code);
+        const targets = visibleRows().filter(c => !c.startedAt).map(c => c.code);
         if (!targets.length) { alert('列表中沒有「未開始」的魔書。'); return; }
         if (!confirm(`要讓這 ${targets.length} 本魔書開始計時嗎？\n${targets.join('、')}`)) return;
         $('startFilteredBtn').disabled = true;
